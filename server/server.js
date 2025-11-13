@@ -1,63 +1,67 @@
-// Carga las variables de entorno
-require('dotenv').config();
+// Carga las variables de entorno al inicio
+import 'dotenv/config';
+import express from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ------------------------------------
-// 1. MIDDLEWARE GLOBAL
-// ------------------------------------
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // ------------------------------------
-// 2. CONEXIÓN A MONGODB
+// 1. CONEXIÓN A MONGODB ATLAS
 // ------------------------------------
 mongoose.connect(process.env.DATABASE_URI)
-  .then(() => console.log('✅ MongoDB Atlas conectado correctamente.'))
+  .then(() => console.log('✅ MongoDB Atlas conectado.'))
   .catch(err => {
-    console.error('❌ Error de conexión a MongoDB:', err.message);
+    console.error('❌ Error CRÍTICO de conexión a MongoDB:', err.message);
     process.exit(1);
   });
 
 // ------------------------------------
-// 3. RUTAS DE LA API
+// 2. IMPORTAR Y USAR RUTAS DE LA API
 // ------------------------------------
-const shipmentRoutes = require('./routes/shipmentRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const webhookRoutes = require('./routes/webhookRoutes');
+import shipmentRoutes from './routes/shipmentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
 
 app.use('/api', shipmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/webhook', webhookRoutes);
 
-// Ruta simple de prueba
+// Ruta de prueba
 app.get('/api/status', (req, res) => {
-  res.send({ message: '✅ SmartCargo API activa y funcionando.' });
+  res.send('SmartCargo API activa y funcionando.');
 });
 
 // ------------------------------------
-// 4. SERVIR FRONTEND (Render Web Service)
+// 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
 // ------------------------------------
-const clientPath = path.join(__dirname, '../client/dist');
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(frontendPath));
 
-// Servir archivos estáticos del frontend compilado por Vite
-app.use(express.static(clientPath));
-
-// Cualquier ruta no-API devuelve el index.html de React
-app.get('*', (req, res) => {
-  res.sendFile(path.join(clientPath, 'index.html'));
-});
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(frontendPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('SmartCargo Advisory API activa. Estado: Operacional.');
+  });
+}
 
 // ------------------------------------
-// 5. INICIAR SERVIDOR
+// 4. INICIAR SERVIDOR
 // ------------------------------------
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor SmartCargo ejecutándose en puerto ${PORT}`);
+  console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
 });
