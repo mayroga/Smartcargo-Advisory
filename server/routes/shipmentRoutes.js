@@ -1,9 +1,12 @@
-const express = require('express');
+import express from 'express';
+import Stripe from 'stripe';
+import Shipment from '../models/Shipment.js'; // Importación cambiada
+import { sendValidationEmail } from '../services/emailService.js'; // Importación cambiada
+import { generateValidationPDF } from '../services/pdfService.js'; // Importación cambiada
+
 const router = express.Router();
-const Shipment = require('../models/Shipment');
-const { sendValidationEmail } = require('../services/emailService');
-const { generateValidationPDF } = require('../services/pdfService');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Inicialización de Stripe para ES Modules
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Función de Simulación de Validación (Aquí va tu LÓGICA DE NEGOCIO REAL)
 const runOptimizationEngine = (data) => {
@@ -26,6 +29,7 @@ const runOptimizationEngine = (data) => {
     }
     
     return {
+        calculatedDimWeight: dimWeight, // Añadido para guardar el valor
         billingWeight: billingWeight,
         savingsEstimate: savingsEstimate,
         feeCharged: feeCharged,
@@ -79,4 +83,4 @@ router.post('/submit-shipment', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router; // Exportación cambiada
