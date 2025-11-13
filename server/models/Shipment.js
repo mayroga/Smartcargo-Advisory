@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+import mongoose from 'mongoose'; // Importación cambiada
+import { v4 as uuidv4 } from 'uuid'; // Importación cambiada
 
 const shipmentSchema = new mongoose.Schema({
     clientEmail: { type: String, required: true },
@@ -16,7 +16,7 @@ const shipmentSchema = new mongoose.Schema({
 
     // Seguridad y Token
     documentsValid: { type: Boolean, default: false },
-    pdfToken: { type: String, default: uuidv4(), unique: true },
+    pdfToken: { type: String, default: uuidv4, unique: true }, // Corregido: uuidv4 debe ser una referencia a la función
     pdfExpiresAt: { type: Date, default: () => Date.now() + 72 * 60 * 60 * 1000 },
 
     // Pagos
@@ -27,4 +27,4 @@ const shipmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('Shipment', shipmentSchema);
+export default mongoose.model('Shipment', shipmentSchema); // Exportación cambiada
