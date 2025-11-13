@@ -4,8 +4,10 @@
   "description": "SmartCargo Advisory Web Service (Backend + Frontend integrado)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "cd ../client && npm ci && npx vite build"
+  "start": "node server.js",
+  "build": "cd ../client && npm install && npm run build"
+}
+
   },
   "engines": {
     "node": ">=18.0.0"
