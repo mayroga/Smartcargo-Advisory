@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SmartCargo Advisory App</title>
-    <!-- CORRECCIÓN CLAVE: Asegura que el navegador busque los archivos JS/CSS en la raíz -->
+    <!-- 1. CORRECCIÓN DE RUTAS CRÍTICA: Asegura que el navegador busque los archivos JS/CSS desde la raíz de la URL. -->
     <base href="/"> 
+    <!-- 2. REFERENCIA A CSS: Asegura que el CSS global (donde está Tailwind) sea cargado. -->
+    <!-- Vite lo reemplazará con el nombre del archivo compilado (ej: assets/index-hash.css) -->
+    <link rel="stylesheet" href="/index.css" />
 </head>
 <body>
     <div id="root"></div> 
     
-    <!-- Vite reemplazará esta línea con el archivo JS compilado. -->
+    <!-- 3. Archivo de inicio de React -->
     <script type="module" src="./src/main.jsx"></script>
 </body>
 </html>
