@@ -43,7 +43,7 @@ app.get('/api/status', (req, res) => {
 // ------------------------------------
 // 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
 // ------------------------------------
-if (process.env.NODE_ENV === 'production') {
+if (process.env.RENDER) { 
   // CORRECCIÓN CRÍTICA: Apunta directamente a la carpeta 'client' (donde está index.html)
   // en lugar de la subcarpeta 'build', que no se creó.
   const frontendPath = path.join(__dirname, '../client');
