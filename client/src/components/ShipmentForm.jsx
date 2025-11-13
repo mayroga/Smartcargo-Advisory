@@ -52,8 +52,8 @@ const ShipmentForm = () => {
                 <div>
                     <label htmlFor="clientEmail" className="block text-sm font-medium text-gray-700">Email (Recibirás el informe)</label>
                     <input type="email" name="clientEmail" value={formData.clientEmail} onChange={handleChange} required
-                           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
-                           placeholder="contacto@empresa.com"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="contacto@empresa.com"
                     />
                 </div>
                 
@@ -61,15 +61,15 @@ const ShipmentForm = () => {
                     <div>
                         <label htmlFor="destination" className="block text-sm font-medium text-gray-700">Destino (País/Aeropuerto)</label>
                         <input type="text" name="destination" value={formData.destination} onChange={handleChange} required
-                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                               placeholder="MIA, CDMX, MAD..."
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
+                                placeholder="MIA, CDMX, MAD..."
                         />
                     </div>
                     <div>
                         <label htmlFor="realWeight" className="block text-sm font-medium text-gray-700">Peso Real (Kg)</label>
                         <input type="number" name="realWeight" value={formData.realWeight} onChange={handleChange} required step="0.01"
-                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                               placeholder="Ej: 50.5"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
+                                placeholder="Ej: 50.5"
                         />
                     </div>
                 </div>
@@ -77,8 +77,8 @@ const ShipmentForm = () => {
                 <div>
                     <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700">Dimensiones (Largo x Ancho x Alto, en cm)</label>
                     <input type="text" name="dimensions" value={formData.dimensions} onChange={handleChange} required
-                           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                           placeholder="Ej: 80x60x40"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
+                            placeholder="Ej: 80x60x40"
                     />
                 </div>
                 
@@ -93,4 +93,4 @@ const ShipmentForm = () => {
     );
 };
 
-export default ShipmentForm;
+export default ShipmentForm
