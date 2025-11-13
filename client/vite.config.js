@@ -1,18 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// Configuración simple y estable para Render
 export default defineConfig({
   plugins: [react()],
-  root: '.',
+  root: './', // raíz de tu cliente
   build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
+    outDir: 'dist', // Vite pondrá los archivos compilados en client/dist
+    emptyOutDir: true,
+    rollupOptions: {
+      input: path.resolve(__dirname, 'index.html')
     }
+  },
+  server: {
+    port: 5173,
+    open: true
   }
-})
+});
