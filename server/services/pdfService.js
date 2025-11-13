@@ -1,4 +1,7 @@
 import puppeteer from 'puppeteer';
+// Importamos el BrowserFetcher de Puppeteer para obtener la ruta exacta del binario
+import { BrowserFetcher, supportedProducts } from 'puppeteer/lib/esm/puppeteer/node/BrowserFetcher.js';
+
 
 /**
  * @description Genera el contenido HTML para el informe de validación de SmartCargo.
@@ -69,43 +72,57 @@ const generateHtmlContent = (shipment) => {
  * @throws {Error} Si Puppeteer falla al lanzar el navegador o generar el PDF.
  */
 export const generateValidationPDF = async (shipment) => {
-    let browser; // Declarado fuera del try para que sea accesible en finally
+    let browser; 
+    let executablePath;
 
     try {
+        // Obtenemos la ruta exacta del binario de Chrome que instalamos en el paso 'build'
+        const browserFetcher = new BrowserFetcher({ product: supportedProducts.chrome });
+        // Usamos la revisión específica reportada en el error: 127.0.6533.88
+        const revision = '127.0.6533.88'; 
+        const revisionInfo = await browserFetcher.resolveBuildId(revision);
+        
+        // Si no se encuentra la revisión, volvemos a la ruta por defecto o lanzamos error
+        if (revisionInfo && revisionInfo.executablePath) {
+            executablePath = revisionInfo.executablePath;
+        } else {
+            console.warn(`No se encontró la revisión ${revision}. Usando ruta predeterminada.`);
+            executablePath = puppeteer.executablePath(); 
+        }
+
         // Configuración para la ejecución sin errores en entornos sin GUI (como Render o Docker)
         browser = await puppeteer.launch({
             args: [
                 '--no-sandbox', 
                 '--disable-setuid-sandbox', 
-                '--single-process', // A veces ayuda en entornos de bajos recursos
-                '--disable-dev-shm-usage' // Importante para entornos limitados como Render
+                '--single-process',
+                '--disable-dev-shm-usage',
+                '--disable-gpu' 
             ],
-            headless: 'new' // 'new' es el modo headless más reciente
+            executablePath: executablePath, // Usamos la ruta resuelta
+            headless: 'new' 
         });
         
         const page = await browser.newPage();
         
         const htmlContent = generateHtmlContent(shipment);
         
-        // Carga el contenido HTML y espera hasta que no haya conexiones de red durante 500ms
+        // Carga el contenido HTML
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
         // Genera el PDF
         const pdfBuffer = await page.pdf({
             format: 'A4',
-            printBackground: true, // Importante para que los colores de fondo se muestren
+            printBackground: true, 
             margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
         });
 
-        // Devuelve el Buffer del PDF
         return pdfBuffer;
 
     } catch (error) {
         console.error('Error CRÍTICO al generar el PDF con Puppeteer:', error);
-        // Propaga el error para que la función que llama lo maneje
         throw new Error(`Fallo en la generación del PDF: ${error.message}`);
     } finally {
-        // Asegura que el navegador se cierre SIEMPRE, incluso después de un error.
         if (browser) {
             await browser.close();
         }
