@@ -1,6 +1,8 @@
-const express = require('express');
+import express from 'express';
+import Shipment from '../models/Shipment.js'; // Importación cambiada
+import 'dotenv/config'; // Asegurar que las variables de entorno se carguen aquí también
+
 const router = express.Router();
-const Shipment = require('../models/Shipment');
 
 // Middleware simple de autenticación (¡DEBES MEJORAR ESTO!)
 const authenticateAdmin = (req, res, next) => {
@@ -39,4 +41,4 @@ router.get('/dashboard', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router; // Exportación cambiada
