@@ -1,31 +1,33 @@
-// Carga las variables de entorno al inicio
+// Carga las variables de entorno
 require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path'); 
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware (body-parser para JSON, cors)
+// ------------------------------------
+// 1. MIDDLEWARE GLOBAL
+// ------------------------------------
 app.use(cors());
 app.use(bodyParser.json());
 
 // ------------------------------------
-// 1. CONEXIÓN A MONGODB ATLAS
+// 2. CONEXIÓN A MONGODB
 // ------------------------------------
 mongoose.connect(process.env.DATABASE_URI)
-  .then(() => console.log('✅ MongoDB Atlas conectado.'))
+  .then(() => console.log('✅ MongoDB Atlas conectado correctamente.'))
   .catch(err => {
-    console.error('❌ Error CRÍTICO de conexión a MongoDB:', err.message);
-    process.exit(1); 
+    console.error('❌ Error de conexión a MongoDB:', err.message);
+    process.exit(1);
   });
 
 // ------------------------------------
-// 2. IMPORTAR Y USAR RUTAS DE LA API
+// 3. RUTAS DE LA API
 // ------------------------------------
 const shipmentRoutes = require('./routes/shipmentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -33,39 +35,29 @@ const webhookRoutes = require('./routes/webhookRoutes');
 
 app.use('/api', shipmentRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/webhook', webhookRoutes); 
+app.use('/webhook', webhookRoutes);
 
-// Ruta de prueba
+// Ruta simple de prueba
 app.get('/api/status', (req, res) => {
-    res.send('SmartCargo API activa y funcionando.');
+  res.send({ message: '✅ SmartCargo API activa y funcionando.' });
 });
 
 // ------------------------------------
-// 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
+// 4. SERVIR FRONTEND (Render Web Service)
 // ------------------------------------
-if (process.env.RENDER) { 
-  // CORRECCIÓN CRÍTICA: Apunta directamente a la carpeta 'client' (donde está index.html)
-  // en lugar de la subcarpeta 'build', que no se creó.
-  const frontendPath = path.join(__dirname, '../client');
-  
-  // Servir los archivos estáticos (JS, CSS, imágenes)
-  app.use(express.static(frontendPath)); 
+const clientPath = path.join(__dirname, '../client/dist');
 
-  // Cualquier ruta que no sea de la API sirve el index.html de React
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(frontendPath, 'index.html'));
-  });
-} else {
-  // Ruta de prueba para desarrollo
-  app.get('/', (req, res) => {
-    res.send('SmartCargo Advisory API activa. Estado: Operacional.');
-  });
-}
+// Servir archivos estáticos del frontend compilado por Vite
+app.use(express.static(clientPath));
 
+// Cualquier ruta no-API devuelve el index.html de React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'));
+});
 
 // ------------------------------------
-// 4. INICIAR SERVIDOR
+// 5. INICIAR SERVIDOR
 // ------------------------------------
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor SmartCargo ejecutándose en puerto ${PORT}`);
 });
