@@ -23,41 +23,131 @@ const generateHtmlContent = (shipment) => {
         <head>
             <style>
                 body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 30px; line-height: 1.6; color: #333; }
-                .header { background-color: #e0f2f1; padding: 20px; border-radius: 8px; text-align: center; border-bottom: 4px solid #047857; }
-                .header h1 { margin: 0; color: #047857; }
-                .section { margin-top: 35px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; }
-                .savings { color: #059669; font-weight: bold; font-size: 1.6em; display: block; margin-top: 5px; }
-                .cost-box { border: 2px solid #3b82f6; padding: 20px; border-radius: 8px; background-color: #eff6ff; margin-top: 25px; }
-                .cost-box h3, .cost-box h4 { margin-top: 5px; margin-bottom: 15px; }
-                .disclaimer { font-size: 0.85em; color: #b91c1c; margin-top: 40px; border: 2px solid #fca5a5; padding: 20px; border-radius: 8px; background-color: #fef2f2; }
-                strong { color: #1f2937; }
+                .header { 
+                    background-color: #e0f2f1; 
+                    padding: 25px; /* Más espacio */
+                    border-radius: 10px; 
+                    text-align: center; 
+                    border-bottom: 5px solid #047857; /* Línea más gruesa */
+                    margin-bottom: 40px; 
+                }
+                .header h1 { margin: 0; color: #047857; font-size: 2em; }
+                .section { 
+                    margin-top: 40px; 
+                    padding-bottom: 20px; 
+                }
+                .section h3 {
+                    color: #1f2937;
+                    border-bottom: 2px solid #a3a3a3; /* Separador limpio */
+                    padding-bottom: 8px;
+                    margin-bottom: 20px; /* Espacio para el título */
+                }
+                /* Nueva clase para filas de datos limpias */
+                .data-row {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 10px 0;
+                    border-bottom: 1px dashed #e5e7eb; 
+                }
+                .data-row:last-child {
+                    border-bottom: none;
+                }
+                .label {
+                    font-weight: 500;
+                    color: #555;
+                }
+                .value {
+                    font-weight: 700;
+                    color: #047857;
+                }
+                .savings { 
+                    color: #b91c1c; /* Color rojo para el potencial de ahorro */
+                    font-weight: bold; 
+                    font-size: 1.6em; 
+                }
+                .cost-box { 
+                    border: 3px solid #3b82f6; /* Borde más grueso */
+                    padding: 30px; /* Más padding */
+                    border-radius: 12px; 
+                    background-color: #eff6ff; 
+                    margin-top: 35px; 
+                }
+                .cost-box h3, .cost-box h4 { 
+                    margin-top: 0; 
+                    margin-bottom: 20px; 
+                }
+                .disclaimer { 
+                    font-size: 0.8em; 
+                    color: #b91c1c; 
+                    margin-top: 50px; 
+                    border: 1px solid #fca5a5; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    background-color: #fef2f2; 
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 50px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ccc;
+                    font-size: 0.75em;
+                    color: #888;
+                }
             </style>
         </head>
         <body>
             <div class="header">
                 <h1>SMARTCARGO ADVISORY</h1>
-                <p style="font-size: 1.1em;">INFORME DE VALIDACIÓN Y OPTIMIZACIÓN DE CARGA AÉREA</p>
+                <p style="font-size: 1.1em; color: #10B981;">INFORME DE VALIDACIÓN Y OPTIMIZACIÓN DE CARGA AÉREA</p>
                 <p style="font-size: 0.9em;">**Ref: #${referenceId}** | **Fecha: ${dateString}**</p>
             </div>
 
             <div class="section">
-                <h3 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 5px;">1. Resultados de Optimización</h3>
-                <p><strong>Peso Cobrable (Final):</strong> ${shipment.billingWeight.toFixed(2)} kg</p>
-                <p><strong>Peso Volumétrico Calculado:</strong> ${shipment.calculatedDimWeight.toFixed(2)} kg</p>
-                <p><strong>Ahorro Estimado Logrado (por Asesoría):</strong> <span class="savings">$${shipment.savingsEstimate.toFixed(2)} USD</span></p>
+                <h3>1. Resultados Clave y Optimización de Peso</h3>
+                
+                <div class="data-row">
+                    <span class="label">Peso Real Declarado (Kg):</span>
+                    <span class="value">${shipment.realWeight.toFixed(2)}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Peso Volumétrico Calculado (Kg):</span>
+                    <span class="value">${shipment.calculatedDimWeight.toFixed(2)}</span>
+                </div>
+                <!-- Resaltado de la métrica clave -->
+                <div class="data-row" style="background-color: #ccfbf1; border-radius: 4px; padding: 15px 10px;">
+                    <span class="label" style="font-size: 1.1em; color: #047857;">PESO COBRABLE (Billing Weight):</span>
+                    <span class="value" style="font-size: 1.3em; color: #047857;">${shipment.billingWeight.toFixed(2)} kg</span>
+                </div>
+                
+                <div class="data-row" style="margin-top: 20px; border-top: 2px solid #fca5a5; padding-top: 15px;">
+                    <span class="label">Ahorro Potencial Estimado por Optimización:</span>
+                    <span class="savings">$${shipment.savingsEstimate.toFixed(2)} USD</span>
+                </div>
             </div>
             
             <div class="cost-box">
-                <h3 style="color: #3b82f6;">2. Detalles del Servicio de Asesoría</h3>
-                <p><strong>Estado Documental:</strong> ${shipment.documentsValid ? '✅ Documentos OK' : '❌ Documentos Pendientes de Revisión'}</p>
-                <p><strong>Sugerencias de SmartCargo:</strong> ${shipment.optimizationSuggestions || 'No se encontraron sugerencias de optimización adicionales.'}</p>
-                <h4 style="color: #3b82f6; margin-top: 20px; border-top: 1px dashed #3b82f6; padding-top: 10px;">Tarifa de Asesoría (PAGO ÚNICO): $${shipment.feeCharged.toFixed(2)} USD</h4>
+                <h3 style="color: #3b82f6; margin-top: 0;">2. Detalles de la Asesoría y Documentación</h3>
+                <div class="data-row" style="border-bottom: none;">
+                    <span class="label">Estado Documental:</span>
+                    <span class="value" style="color: ${shipment.documentsValid ? '#059669' : '#b91c1c'};">${shipment.documentsValid ? '✅ Documentos OK' : '❌ Documentos Pendientes de Revisión'}</span>
+                </div>
+                <p style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #93c5fd;"><strong>Sugerencias de SmartCargo:</strong></p>
+                <p style="margin-top: 5px; color: #3b82f6; font-style: italic;">${shipment.optimizationSuggestions || 'No se encontraron sugerencias de optimización adicionales.'}</p>
+                
+                <h4 style="color: #3b82f6; margin-top: 30px; border-top: 2px dashed #93c5fd; padding-top: 15px; text-align: right;">
+                    Tarifa de Asesoría (PAGO ÚNICO): <span class="savings" style="color: #3b82f6;">$${shipment.feeCharged.toFixed(2)} USD</span>
+                </h4>
             </div>
 
             <div class="disclaimer">
-                <h3>⚠️ DISPONIBILIDAD Y CLÁUSULA LEGAL (CERO RIESGO OPERATIVO)</h3>
+                <h3>⚠️ CLÁUSULA LEGAL (CERO RIESGO OPERATIVO)</h3>
                 <p>SmartCargo Advisory (May Roga LLC) proporciona <strong>ÚNICAMENTE ASESORÍA DIGITAL</strong> y cálculos volumétricos. NO se realiza ninguna manipulación, inspección física o embalaje de la mercancía. La responsabilidad legal por la documentación, el embalaje físico y el cumplimiento de normativas IATA/aduaneras recae **exclusivamente en el exportador/importador.**</p>
                 <p style="margin-top: 15px; font-weight: bold;">Al realizar el pago, usted acepta estos términos de asesoría no física.</p>
+            </div>
+            
+            <div class="footer">
+                <p>SmartCargo Advisory | Contacto: advisory@smartcargo.com</p>
+                <p>Confidencial - ${dateString}</p>
             </div>
         </body>
         </html>
