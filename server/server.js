@@ -5,7 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path'); // Se agrega para servir archivos estáticos
+const path = require('path'); 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,9 +27,6 @@ mongoose.connect(process.env.DATABASE_URI)
 // ------------------------------------
 // 2. IMPORTAR Y USAR RUTAS DE LA API
 // ------------------------------------
-// Nota: Asegúrate de que estos archivos existan y estén nombrados correctamente:
-// ./routes/shipmentRoutes.js, ./routes/adminRoutes.js, ./routes/webhookRoutes.js
-
 const shipmentRoutes = require('./routes/shipmentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
@@ -46,20 +43,20 @@ app.get('/api/status', (req, res) => {
 // ------------------------------------
 // 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
 // ------------------------------------
-// ESTE BLOQUE ES CRÍTICO para que Render sirva React
+// NOTA: Se ha corregido la ruta de 'dist' a 'build'
 if (process.env.NODE_ENV === 'production') {
-  // Asegúrate de que 'dist' es la carpeta de compilación de tu Frontend
-  const frontendPath = path.join(__dirname, '../client/dist');
+  // Configuración de la carpeta de compilación 'build'
+  const frontendPath = path.join(__dirname, '../client/build');
   
-  // Servir los archivos estáticos (JS, CSS, imágenes) desde la carpeta 'dist'
+  // Servir los archivos estáticos (JS, CSS, imágenes)
   app.use(express.static(frontendPath)); 
 
-  // Cualquier ruta que no sea de la API debe servir el index.html de React
+  // Cualquier ruta que no sea de la API sirve el index.html de React
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(frontendPath, 'index.html'));
   });
 } else {
-  // Ruta de prueba para desarrollo si no es producción
+  // Ruta de prueba para desarrollo
   app.get('/', (req, res) => {
     res.send('SmartCargo Advisory API activa. Estado: Operacional.');
   });
