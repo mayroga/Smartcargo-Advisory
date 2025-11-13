@@ -1,15 +1,18 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
-// Configuración estándar para despliegues en Render o cualquier hosting
+// Configuración simple y estable para Render
 export default defineConfig({
   plugins: [react()],
+  root: '.',
   build: {
     outDir: 'dist',
     emptyOutDir: true
   },
-  server: {
-    port: 5173,
-    open: true
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
   }
-});
+})
