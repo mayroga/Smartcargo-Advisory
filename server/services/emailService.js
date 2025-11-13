@@ -1,4 +1,5 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer'; // Importación cambiada
+import 'dotenv/config';
 
 // Configuración para SendGrid con Nodemailer
 const transporter = nodemailer.createTransport({
@@ -49,4 +50,4 @@ const sendValidationEmail = async (shipment, pdfBuffer, clientSecret) => {
     return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendValidationEmail };
+export { sendValidationEmail }; // Exportación nombrada cambiada
