@@ -43,10 +43,10 @@ app.get('/api/status', (req, res) => {
 // ------------------------------------
 // 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
 // ------------------------------------
-// NOTA: Se ha corregido la ruta de 'dist' a 'build'
 if (process.env.NODE_ENV === 'production') {
-  // Configuración de la carpeta de compilación 'build'
-  const frontendPath = path.join(__dirname, '../client/build');
+  // CORRECCIÓN CRÍTICA: Apunta directamente a la carpeta 'client' (donde está index.html)
+  // en lugar de la subcarpeta 'build', que no se creó.
+  const frontendPath = path.join(__dirname, '../client');
   
   // Servir los archivos estáticos (JS, CSS, imágenes)
   app.use(express.static(frontendPath)); 
