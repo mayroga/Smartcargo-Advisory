@@ -1,0 +1,25 @@
+{
+  "name": "smartcargo-server",
+  "version": "1.0.0",
+  "description": "SmartCargo Advisory Web Service (Backend + Frontend integrado)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "cd ../client && npm install && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "mongoose": "^7.6.0",
+    "stripe": "^15.0.0"
+  },
+  "devDependencies": {},
+  "author": "Maykel Rodríguez García - May Roga LLC",
+  "license": "MIT"
+}
