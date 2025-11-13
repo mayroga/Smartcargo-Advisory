@@ -1,39 +1,44 @@
 const puppeteer = require('puppeteer');
 
-// Función que genera el HTML del informe (simplificado)
+// HTML altamente enfocado en el Disclaimer Legal y los resultados.
 const generateHtmlContent = (shipment) => {
     return `
         <html>
         <head>
             <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                .header { background-color: #f3f4f6; padding: 15px; border-radius: 5px; text-align: center; }
-                .section { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
-                .savings { color: #059669; font-weight: bold; font-size: 1.2em; }
-                .disclaimer { font-size: 0.75em; color: #ef4444; margin-top: 30px; border: 1px dashed #ef4444; padding: 10px; }
+                body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 30px; line-height: 1.6; }
+                .header { background-color: #e0f2f1; padding: 20px; border-radius: 8px; text-align: center; }
+                .section { margin-top: 25px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; }
+                .savings { color: #059669; font-weight: bold; font-size: 1.5em; }
+                .cost-box { border: 2px solid #3b82f6; padding: 15px; border-radius: 6px; background-color: #eff6ff; }
+                .disclaimer { font-size: 0.8em; color: #b91c1c; margin-top: 30px; border: 2px solid #fca5a5; padding: 15px; border-radius: 6px; background-color: #fef2f2; }
             </style>
         </head>
         <body>
             <div class="header">
-                <h2>SMARTCARGO ADVISORY - INFORME DE VALIDACIÓN</h2>
-                <p>Referencia: #${shipment._id.toString().slice(-6)} | Cliente: ${shipment.clientEmail}</p>
+                <h1 style="color: #047857;">SMARTCARGO ADVISORY</h1>
+                <p>INFORME DE VALIDACIÓN Y OPTIMIZACIÓN DE CARGA AÉREA</p>
+                <p>Ref: #${shipment._id.toString().slice(-6)} | Fecha: ${shipment.createdAt.toLocaleDateString()}</p>
             </div>
 
             <div class="section">
-                <h3>1. Resumen de Optimización</h3>
-                <p><strong>Ahorro Estimado:</strong> <span class="savings">$${shipment.savingsEstimate.toFixed(2)} USD</span></p>
+                <h3 style="color: #333;">1. Resultados de Optimización</h3>
                 <p><strong>Peso Cobrable (Final):</strong> ${shipment.billingWeight.toFixed(2)} kg</p>
-                <p><strong>Sugerencias:</strong> ${shipment.optimizationSuggestions}</p>
+                <p><strong>Peso Volumétrico Calculado:</strong> ${shipment.calculatedDimWeight.toFixed(2)} kg</p>
+                <p><strong>Ahorro Estimado Logrado (por Asesoría):</strong> <span class="savings">$${shipment.savingsEstimate.toFixed(2)} USD</span></p>
             </div>
             
-            <div class="section">
-                <h3>2. Estado Documental</h3>
-                <p><strong>Verificación:</strong> ${shipment.documentsValid ? '✅ OK' : '❌ PENDIENTE DE CORRECCIÓN'}</p>
-                <p><strong>Tarifa de Asesoría:</strong> $${shipment.feeCharged.toFixed(2)} USD</p>
+            <div class="section cost-box">
+                <h3 style="color: #3b82f6;">2. Detalles del Servicio de Asesoría</h3>
+                <p><strong>Estado Documental:</strong> ${shipment.documentsValid ? '✅ Documentos OK' : '❌ Documentos Pendientes de Revisión'}</p>
+                <p><strong>Sugerencias de SmartCargo:</strong> ${shipment.optimizationSuggestions}</p>
+                <h4 style="color: #3b82f6; margin-top: 10px;">Tarifa de Asesoría (PAGO ÚNICO): $${shipment.feeCharged.toFixed(2)} USD</h4>
             </div>
 
             <div class="disclaimer">
-                ⚠️ **DISCLAIMER LEGAL Y CERO CONTACTO FÍSICO:** SmartCargo Advisory (May Roga LLC) proporciona ÚNICAMENTE asesoría documental y de cálculo volumétrico en base a los datos proporcionados por el cliente. NO se manipula, inspecciona físicamente, ni se certifica la carga peligrosa. La responsabilidad del embalaje y cumplimiento de normativas aduaneras recae totalmente en el cliente.
+                <h3>⚠️ DISPONIBILIDAD Y CLÁUSULA LEGAL (CERO RIESGO OPERATIVO)</h3>
+                <p>SmartCargo Advisory (May Roga LLC) proporciona <strong>ÚNICAMENTE ASESORÍA DIGITAL</strong> y cálculos volumétricos. NO se realiza ninguna manipulación, inspección física o embalaje de la mercancía. La responsabilidad legal por la documentación, el embalaje físico y el cumplimiento de normativas IATA/aduaneras recae **exclusivamente en el exportador/importador.**</p>
+                <p>Al realizar el pago, usted acepta estos términos de asesoría no física.</p>
             </div>
         </body>
         </html>
@@ -41,10 +46,10 @@ const generateHtmlContent = (shipment) => {
 };
 
 const generateValidationPDF = async (shipment) => {
-    // Usar 'launch' para Render (que es un entorno Linux)
+    // Configuración para la ejecución sin errores en Render (Linux)
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        // headless: 'new' // Usar modo headless para producción
+        headless: 'new' 
     });
     const page = await browser.newPage();
     
