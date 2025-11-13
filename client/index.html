@@ -1,19 +1,486 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SmartCargo Advisory App</title>
-    <!-- 1. CORRECCIÓN DE RUTAS CRÍTICA: Asegura que el navegador busque los archivos JS/CSS desde la raíz de la URL. -->
-    <base href="/"> 
-    <!-- 2. REFERENCIA A CSS: Asegura que el CSS global (donde está Tailwind) sea cargado. -->
-    <!-- Vite lo reemplazará con el nombre del archivo compilado (ej: assets/index-hash.css) -->
-    <link rel="stylesheet" href="/index.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo Advisory - Preliminary Compliance Check</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(4, 120, 87, 0.3), 0 4px 6px -4px rgba(4, 120, 87, 0.1);
+        }
+        .value-card {
+            transition: transform 0.3s;
+        }
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div> 
-    
-    <!-- 3. Archivo de inicio de React -->
-    <script type="module" src="./src/main.jsx"></script>
+
+    <div id="app" class="min-h-screen">
+        <!-- 1. HEADER & HERO - Repositioned to remove "Legal" claims -->
+        <header class="bg-white shadow-lg sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-600" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v2a2 2 0 00-2-2H5a2 2 0 00-2 2V6zm0 4a2 2 0 00-2 2v7a2 2 0 002 2h18a2 2 0 002-2v-7a2 2 0 00-2-2H3zm1 3a1 1 0 000 2h1a1 1 0 100-2H4zm5 0a1 1 0 000 2h1a1 1 0 100-2H9zm5 0a1 1 0 000 2h1a1 1 0 100-2h-1zm5 0a1 1 0 000 2h1a1 1 0 100-2h-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-2xl font-bold text-gray-800">SmartCargo <span class="text-teal-600">Advisory</span></span>
+                </div>
+                <p class="text-sm text-gray-500 hidden sm:block">Compliance Engine: ZERO ERROR</p>
+            </div>
+        </header>
+
+        <section class="bg-teal-700 text-white py-16 sm:py-24 px-4">
+            <div class="max-w-6xl mx-auto text-center">
+                <h1 class="text-4xl sm:text-6xl font-extrabold mb-4 leading-tight">
+                    The Only Logistics System with <span class="text-yellow-300">Operational Intelligence</span>.
+                </h1>
+                <p class="text-xl sm:text-2xl mb-8 font-light max-w-3xl mx-auto">
+                    **We are your 24/7 Compliance Tool.** We validate **Billable Weight, Pallet Stowage, and Preliminary DG Segregation** before cargo hits the ramp.
+                </p>
+                <a href="#validation-form" class="btn-primary bg-yellow-400 text-teal-900 px-8 py-3 rounded-xl font-bold text-lg inline-block hover:bg-yellow-300">
+                    Start Operational Validation
+                </a>
+            </div>
+        </section>
+
+        <!-- 2. SECTION: LIABILITY-ADJUSTED BENEFITS -->
+        <section class="py-16 px-4">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-12">Our Three Pillars of Efficiency and Safety</h2>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Pillar 1: Freight Optimization (Operational) -->
+                    <div class="value-card bg-white p-6 rounded-xl shadow-lg border-t-4 border-green-500">
+                        <div class="text-4xl text-green-500 mb-4">📐</div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Smart Stowage & Accurate Billing</h3>
+                        <p class="text-gray-600 text-sm">
+                            We simulate the stowage (palletization) of your pieces to ensure you are not paying unnecessary freight for air. We tell you **how many pallets you will truly need** and the final billable weight, optimizing every cubic centimeter.
+                        </p>
+                    </div>
+
+                    <!-- Pillar 2: PRELIMINARY DG REFERENCE (Liability Protected) -->
+                    <div class="value-card bg-white p-6 rounded-xl shadow-lg border-t-4 border-red-500">
+                        <div class="text-4xl text-red-500 mb-4">🚨</div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Preliminary DG Guidance & Segregation Check</h3>
+                        <p class="text-gray-600 text-sm">
+                            The DG Assistant provides **informational reference** on **Segregation** and essential labelling rules based on the IATA DGR public domain. *This is not a certification.* Avoid common preparation errors.
+                        </p>
+                    </div>
+
+                    <!-- Pillar 3: Guaranteed Perfect Documentation (Operational) -->
+                    <div class="value-card bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500">
+                        <div class="text-4xl text-blue-500 mb-4">✅</div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Documentation Compliance Check</h3>
+                        <p class="text-gray-600 text-sm">
+                            Cross-check of your AWB against standard operational requirements. **We eliminate human error** in non-DG documentation so your cargo is accepted by the airline on the first attempt.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 3. VALIDATION FORM (The "How It Works" in action) -->
+        <section id="validation-form" class="py-16 bg-gray-50 px-4">
+            <div class="max-w-4xl mx-auto bg-white p-8 sm:p-10 rounded-2xl shadow-2xl">
+                <h2 class="text-3xl font-bold text-teal-700 mb-6">Step 1: Cargo Data for ZERO ERROR Compliance</h2>
+                <p class="text-gray-600 mb-8">Enter the details. Our AI will execute real-time operational validation.</p>
+                
+                <form id="shipment-form" class="space-y-6">
+                    <!-- Email and Destination -->
+                    <div class="grid sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="clientEmail" class="block text-sm font-medium text-gray-700">Client Email</label>
+                            <input type="email" id="clientEmail" name="clientEmail" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label for="destination" class="block text-sm font-medium text-gray-700">Destination (IATA Airport)</label>
+                            <input type="text" id="destination" name="destination" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500" placeholder="E.g.: MIA, CDMX">
+                        </div>
+                    </div>
+
+                    <!-- Weight, Pieces, and Dimensions -->
+                    <div class="grid sm:grid-cols-3 gap-6">
+                        <div>
+                            <label for="realWeight" class="block text-sm font-medium text-gray-700">Actual Weight (Kg)</label>
+                            <input type="number" step="0.01" id="realWeight" name="realWeight" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500" placeholder="E.g.: 150.75">
+                        </div>
+                        <div>
+                            <label for="pieces" class="block text-sm font-medium text-gray-700">Number of Pieces (Units)</label>
+                            <input type="number" step="1" id="pieces" name="pieces" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500" placeholder="E.g.: 10">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label for="dimensions" class="block text-sm font-medium text-gray-700">Dimension per Piece (LxWxH in meters)</label>
+                            <input type="text" id="dimensions" name="dimensions" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500" placeholder="E.g.: 0.5x0.4x0.3">
+                        </div>
+                    </div>
+                    
+                    <!-- Dangerous Goods Toggle -->
+                    <div class="pt-4 pb-4 border-b border-gray-200">
+                        <label for="isDangerousGoods" class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="isDangerousGoods" name="isDangerousGoods" class="h-5 w-5 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                            <span class="text-sm font-medium text-gray-700">
+                                Contains Dangerous Goods (DG)? <span class="text-red-500 font-bold">(Preliminary Reference Available)</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- DG ASSISTANT CONDITIONAL with Segregation and LABELLING reference -->
+                    <div id="dg-assistant" class="space-y-4 p-5 bg-red-50 border border-red-300 rounded-lg shadow-inner hidden">
+                        <h4 class="text-lg font-bold text-red-700 flex items-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6a.75.75 0 001.5 0V6zM12 18.75a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                            </svg>
+                            DG INFORMATIONAL REFERENCE (IATA DGR Guidance)
+                        </h4>
+                        <p class="text-sm text-red-600">For preliminary guidance, enter data. The AI provides real-time IATA Segregation and Marking **Reference only**.</p>
+                        
+                        <div class="grid sm:grid-cols-3 gap-4">
+                            <div>
+                                <label for="unNumber" class="block text-xs font-medium text-red-700">UN Number (E.g.: 1263)</label>
+                                <input type="number" id="unNumber" name="unNumber" class="mt-1 block w-full border border-red-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500" placeholder="E.g.: 1263">
+                            </div>
+                            <div>
+                                <label for="dgClassPrimary" class="block text-xs font-medium text-red-700">Primary Class (E.g.: 3, 4.1)</label>
+                                <input type="text" id="dgClassPrimary" name="dgClassPrimary" class="mt-1 block w-full border border-red-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500" placeholder="E.g.: 3">
+                            </div>
+                            <div>
+                                <label for="dgClassSecondary" class="block text-xs font-medium text-red-700">Secondary Class (Optional)</label>
+                                <input type="text" id="dgClassSecondary" name="dgClassSecondary" class="mt-1 block w-full border border-red-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500" placeholder="E.g.: 6.1 (if applicable)">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="properShippingName" class="block text-xs font-medium text-red-700">Proper Shipping Name</label>
+                            <input type="text" id="properShippingName" name="properShippingName" class="mt-1 block w-full border border-red-300 rounded-md shadow-sm p-2 focus:ring-red-500 focus:border-red-500" placeholder="E.g.: Paint related material">
+                        </div>
+
+                        <!-- Liability Disclaimer - CRITICAL -->
+                        <p class="text-sm font-bold text-red-700 mt-4 border-2 border-red-600 p-3 rounded-lg bg-red-200 shadow-xl">
+                            ⚠️ IMPORTANT LIABILITY DISCLAIMER: This information is for PRELIMINARY REFERENCE ONLY based on general IATA DGR rules. It does not constitute a certified Shipper's Declaration or replace mandatory checks by certified DG personnel. The user assumes all responsibility for final IATA/legal compliance.
+                        </p>
+                        
+                        <!-- DG REAL-TIME RESULTS MODULE -->
+                        <div id="dg-realtime-advice-container" class="mt-4 border border-red-400 bg-red-100 rounded-lg hidden">
+                            <div id="dg-realtime-advice" class="p-3 text-sm text-red-800">
+                                <!-- AI Segregation Advice will be inserted here -->
+                            </div>
+                            <div id="dg-labelling-reference" class="p-4 bg-red-200 border-t border-red-400">
+                                <h5 class="font-extrabold text-red-900 mb-2 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2">
+                                        <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" />
+                                    </svg>
+                                    CRITICAL! LABELLING AND MARKING REFERENCE (IATA)
+                                </h5>
+                                <div id="label-image-and-text" class="text-xs text-red-900">
+                                    <p class="font-semibold mb-1">Primary Label (Class <span id="label-class-display"></span>):</p>
+                                    <!-- Image tag will be inserted here -->
+                                    <p id="label-image-tag"></p> 
+                                    <p class="mt-2 font-semibold">Additional Marking Checklist (Reference Only):</p>
+                                    <ul class="list-disc list-inside ml-2">
+                                        <li>Full name and address of shipper and consignee.</li>
+                                        <li>The **UN Number** (E.g.: UN <span id="label-un-display"></span>) with its Prefix.</li>
+                                        <li>The **Proper Shipping Name** (E.g.: <span id="label-psn-display"></span>).</li>
+                                        <li>Orientation marks (arrows) if applicable for liquids.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+
+                    <!-- Submit Button and Loading -->
+                    <button type="submit" id="submit-button" class="btn-primary w-full flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                        <span id="button-text">Validate Cargo and Generate Professional Report</span>
+                        <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Status Message (Success or Error) -->
+                    <div id="status-message" class="mt-4 p-4 rounded-lg hidden"></div>
+                </form>
+
+                <p class="text-xs text-gray-500 mt-6 text-center">
+                    **Note:** The fee for Advanced Operational Consulting (based on IATA DGR and dimensional calculations) will be applied in the report.
+                </p>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="bg-gray-800 text-white py-6 mt-12">
+            <div class="max-w-6xl mx-auto px-4 text-center text-sm">
+                <p>&copy; 2024 SmartCargo Advisory (May Roga LLC). **ZERO ERROR. ZERO DOUBT.**</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Client JavaScript Logic -->
+    <script>
+        // Simulate availability of global Firebase variables and functions (required for canvas environment)
+        const __app_id = 'smartcargo-v5';
+        const __firebase_config = '{}';
+        const __initial_auth_token = 'simulated-auth-token';
+
+        // Constants for the Gemini API call
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=';
+        const API_KEY = ""; 
+
+        // Mapping of DG Classes to Image Query (for visual reference)
+        const DG_CLASS_MAP = {
+            '1': 'IATA Class 1 Hazard Label', 
+            '2.1': 'IATA Flammable Gas Label',
+            '2.2': 'IATA Non-Flammable Non-Toxic Gas Label',
+            '2.3': 'IATA Toxic Gas Label',
+            '3': 'IATA Flammable Liquid Label',
+            '4.1': 'IATA Flammable Solid Label',
+            '4.2': 'IATA Spontaneously Combustible Substance Label',
+            '4.3': 'IATA Dangerous When Wet Substance Label',
+            '5.1': 'IATA Oxidizer Label',
+            '5.2': 'IATA Organic Peroxide Label',
+            '6.1': 'IATA Toxic Substance Label',
+            '6.2': 'IATA Infectious Substance Label',
+            '7': 'IATA Radioactive Material Label',
+            '8': 'IATA Corrosive Label',
+            '9': 'IATA Miscellaneous Dangerous Goods Label'
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('shipment-form');
+            const statusMessage = document.getElementById('status-message');
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const dgCheckbox = document.getElementById('isDangerousGoods');
+            const dgAssistant = document.getElementById('dg-assistant');
+            const dgRealtimeAdviceContainer = document.getElementById('dg-realtime-advice-container');
+            const dgRealtimeAdvice = document.getElementById('dg-realtime-advice');
+            const labelImageTag = document.getElementById('label-image-tag');
+            
+            // Dynamic display elements for Labelling/Marking section
+            const labelClassDisplay = document.getElementById('label-class-display');
+            const labelUnDisplay = document.getElementById('label-un-display');
+            const labelPsnDisplay = document.getElementById('label-psn-display');
+            
+            const dgFields = ['unNumber', 'dgClassPrimary', 'properShippingName'];
+            const allDGInputs = dgFields.map(id => document.getElementById(id));
+            
+            // List of elements that trigger the segregation query
+            const dgTriggerInputs = document.querySelectorAll('#unNumber, #dgClassPrimary, #dgClassSecondary, #destination');
+
+            // --- REAL-TIME DG ASSISTANT LOGIC (Simulated AI Query) ---
+            const getDGAdvice = async () => {
+                const unNumber = document.getElementById('unNumber').value.trim();
+                const dgClassPrimary = document.getElementById('dgClassPrimary').value.trim();
+                const destination = document.getElementById('destination').value.trim();
+                const properShippingName = document.getElementById('properShippingName').value.trim();
+                const dgClassSecondary = document.getElementById('dgClassSecondary').value.trim();
+                
+                // Update Labelling/Marking dynamic content
+                labelClassDisplay.textContent = dgClassPrimary || '---';
+                labelUnDisplay.textContent = unNumber || '---';
+                labelPsnDisplay.textContent = properShippingName || '---';
+
+                dgRealtimeAdviceContainer.classList.add('hidden');
+                labelImageTag.innerHTML = '';
+                
+                if (!unNumber || !dgClassPrimary || !destination) {
+                    return;
+                }
+
+                // 1. Show loading state
+                dgRealtimeAdviceContainer.classList.remove('hidden');
+                dgRealtimeAdvice.innerHTML = '<span class="animate-pulse">Consulting IATA DGR and Customs Regulations for Reference...</span>';
+
+                // 2. Generate the Label Image Tag (CRITICAL)
+                const imageQuery = DG_CLASS_MAP[dgClassPrimary] || 'IATA Miscellaneous Dangerous Goods Label';
+                labelImageTag.innerHTML = ``;
+
+                // 3. Generate the Prompt for Segregation Consulting (Modified for Non-Certified Advice)
+                const prompt = `Act as an expert in Dangerous Goods (IATA DGR). Analyze the following information and provide a concise, professional response, in English, in Markdown format without title or headers, of no more than 30 words, addressing the segregation query. **Crucially, include a disclaimer stating this guidance is preliminary and non-binding.** Only use the red emoji (E.g.: ⚠️). Cargo: UN ${unNumber}, Primary Class ${dgClassPrimary}, Secondary Class ${dgClassSecondary}, Destination ${destination}. Query: What are the Segregation rules I must apply, and are there any special customs restrictions for this UN at the destination airport? If the UN or Class are invalid, only state: "⚠️ Verify UN and IATA Class. Preliminary DG reference only."`;
+                
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        tools: [{ "google_search": {} }],
+                        systemInstruction: { parts: [{ text: "You are a logistics safety assistant providing *preliminary, non-certified* IATA DGR regulatory compliance advice. Explicitly state this is for reference only and not official documentation." }] },
+                    };
+
+                    // Exponential Backoff Implementation
+                    const MAX_RETRIES = 3;
+                    let lastError = null;
+                    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                        try {
+                            const response = await fetch(GEMINI_API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const result = await response.json();
+                            const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ AI failed to generate a response. Check connection or try again.";
+                            
+                            // Display Segregation result
+                            dgRealtimeAdvice.innerHTML = `<span class="font-bold text-red-900">DG SEGREGATION REFERENCE:</span> ${text}`;
+                            return; // Exit on success
+
+                        } catch (error) {
+                            lastError = error;
+                            if (attempt < MAX_RETRIES - 1) {
+                                const delay = Math.pow(2, attempt) * 1000;
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            }
+                        }
+                    }
+                    throw lastError; // Re-throw last error if all retries failed
+
+                } catch (error) {
+                    dgRealtimeAdvice.innerHTML = `⚠️ Failed connection with DG Reference AI. Please ensure you enter valid data and try again. (${error.message})`;
+                    console.error("DG Consulting API call failed:", error);
+                }
+            };
+            
+            // Assign 'input' event to fields for real-time consulting
+            dgTriggerInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (dgCheckbox.checked) {
+                        getDGAdvice();
+                    }
+                });
+            });
+
+            // Function to show/hide the DG assistant
+            dgCheckbox.addEventListener('change', () => {
+                const isChecked = dgCheckbox.checked;
+                dgAssistant.classList.toggle('hidden', !isChecked);
+                dgRealtimeAdviceContainer.classList.add('hidden'); // Hide result when unchecked
+                labelImageTag.innerHTML = '';
+
+                // Make DG fields required or not, based on checkbox
+                allDGInputs.forEach(input => {
+                    input.required = isChecked;
+                    if (!isChecked) {
+                        input.value = ''; // Clear when hiding
+                    }
+                });
+
+                if (isChecked) {
+                    // If activated, execute first validation
+                    getDGAdvice();
+                }
+            });
+
+
+            // --- MAIN FORM LOGIC (SUBMISSION SIMULATION) ---
+            const showMessage = (message, type = 'success') => {
+                statusMessage.textContent = message;
+                statusMessage.className = 'mt-4 p-4 rounded-lg';
+                if (type === 'success') {
+                    statusMessage.classList.add('bg-green-100', 'text-green-800');
+                } else if (type === 'error') {
+                    statusMessage.classList.add('bg-red-100', 'text-red-800');
+                }
+                statusMessage.classList.remove('hidden');
+            };
+
+            const toggleLoading = (isLoading) => {
+                submitButton.disabled = isLoading;
+                if (isLoading) {
+                    buttonText.textContent = 'Processing ZERO ERROR Compliance...';
+                    loadingSpinner.classList.remove('hidden');
+                } else {
+                    buttonText.textContent = 'Validate Cargo and Generate Professional Report';
+                    loadingSpinner.classList.add('hidden');
+                }
+            };
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                statusMessage.classList.add('hidden');
+                toggleLoading(true);
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // DG Data Collection and Sanitization
+                data.isDangerousGoods = dgCheckbox.checked;
+                if (data.isDangerousGoods) {
+                    data.unNumber = data.unNumber || '';
+                    data.dgClassPrimary = data.dgClassPrimary || '';
+                    data.dgClassSecondary = data.dgClassSecondary || '';
+                    data.properShippingName = data.properShippingName || '';
+                } else {
+                    // If not DG, delete DG fields to avoid contaminating the backend
+                    ['unNumber', 'dgClassPrimary', 'dgClassSecondary', 'properShippingName'].forEach(key => delete data[key]);
+                }
+                
+                // Simulation of Stowage and Billable Weight Calculation (Core App Logic)
+                try {
+                    const [l, w, h] = data.dimensions.split('x').map(Number);
+                    const pieces = parseInt(data.pieces);
+                    const realWeight = parseFloat(data.realWeight);
+                    
+                    if (isNaN(l) || isNaN(w) || isNaN(h) || isNaN(pieces) || isNaN(realWeight) || pieces <= 0) {
+                        throw new Error("Invalid Weight/Dimensions/Pieces data.");
+                    }
+
+                    // Calculate Total Volume: L*W*H times the number of pieces
+                    const totalVolume = l * w * h * pieces;
+                    
+                    // Stowage Assumption (Standard Pallet: 1.2m x 1.0m x 1.6m usable height)
+                    const palletVolume = 1.2 * 1.0 * 1.6;
+                    
+                    const calculatedPallets = Math.ceil(totalVolume / palletVolume);
+                    
+                    // Actual Dimensional Weight Calculation (L*W*H / 6000)
+                    // Use total volume if shipped loose, or pallet volume if on a pallet
+                    const volumeForDimCalculation = calculatedPallets > 1 ? (calculatedPallets * palletVolume) : totalVolume;
+                    const dimWeight = (volumeForDimCalculation * 1000000) / 6000; // Convert to cm³ for dim weight factor
+                    const billingWeight = Math.max(realWeight, dimWeight);
+                    
+                    // Simulated server response
+                    
+                    let dgStatus = "No DG Required.";
+                    if (data.isDangerousGoods) {
+                        dgStatus = `Preliminary DG Reference activated (UN ${data.unNumber}, Class ${data.dgClassPrimary}).`;
+                    }
+                    
+                    const simulatedMessage = `ZERO ERROR Compliance Check successful. Shipment to ${data.destination} (${pieces} pcs). Billable Weight: ${billingWeight.toFixed(2)} Kg. Needs ${calculatedPallets} Pallets. ${dgStatus} Check your email in 2 minutes for the full report.`;
+
+                    // Simulate server latency
+                    await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+                    showMessage(simulatedMessage, 'success');
+                    //form.reset(); 
+                    //dgAssistant.classList.add('hidden');
+                    
+                } catch (error) {
+                    showMessage(`Data error. Make sure Dimensions (LxWxH) and Weight are valid numbers. Error: ${error.message}`, 'error');
+                    console.error('Calculation or Submission Error:', error);
+                } finally {
+                    toggleLoading(false);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
