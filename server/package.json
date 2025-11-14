@@ -1,25 +1,20 @@
 {
+  "name": "smartcargo-server",
+  "version": "1.0.0",
+  "description": "Backend services for SmartCargo Advisory, including PDF generation with Puppeteer.",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "build": "npm install && node_modules/.bin/install-puppeteer-dependencies",
-    "start": "node server.js"
-    /{
-  "scripts": {
-    "build": "npm install && node_modules/.bin/install-puppeteer-dependencies",
-    "start": "node server.js"
-    // ... other scripts
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Installing server dependencies...' && npm install"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "puppeteer-core": "^22.14.0",
-    "chrome-aws-lambda": "^10.0.0" // Consider using this helper package if on AWS Lambda or similar environments, though less common for Render.
-    // ... your other dependencies
-  }
-}
-/ ... other scripts
+    "cors": "^2.8.5"
   },
-  "dependencies": {
-    "puppeteer-core": "^22.14.0",
-    "chrome-aws-lambda": "^10.0.0" // Consider using this helper package if on AWS Lambda or similar environments, though less common for Render.
-    // ... your other dependencies
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
- 
