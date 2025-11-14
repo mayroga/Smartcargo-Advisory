@@ -1,96 +1,127 @@
+// client/src/components/ShipmentForm.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 
-// URL base de tu backend, Render se encargará de resolver '/api'
-const API_BASE_URL = '/api'; 
+const API_BASE_URL = '/api/shipments'; // endpoint base for shipments
 
 const ShipmentForm = () => {
     const [formData, setFormData] = useState({
         clientEmail: '',
         destination: '',
         realWeight: '',
-        dimensions: '' // Formato esperado: "LxWxH"
+        dimensions: '', // format: "80x60x40" in cm
+        pieces: 1,
+        isDangerousGoods: false,
+        unNumber: '',
+        dgClassPrimary: ''
     });
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage('Procesando datos y optimizando... por favor, espera y revisa tu correo en breve.');
+        setMessage('Procesando datos y optimizando...');
 
         try {
-            // Llama a la ruta POST /api/submit-shipment
-            const response = await axios.post(`${API_BASE_URL}/submit-shipment`, formData);
-            setMessage(response.data.message + ' Revisa la bandeja de entrada y spam.');
-            
-            // Limpia el formulario
-            setFormData({ clientEmail: '', destination: '', realWeight: '', dimensions: '' });
+            const payload = {
+                clientEmail: formData.clientEmail,
+                destination: formData.destination,
+                realWeight: Number(formData.realWeight),
+                dimensions: formData.dimensions,
+                pieces: Number(formData.pieces),
+                isDangerousGoods: formData.isDangerousGoods,
+                unNumber: formData.unNumber,
+                dgClassPrimary: formData.dgClassPrimary
+            };
 
-        } catch (error) {
-            console.error('Error:', error.response?.data || error.message);
-            setMessage('❌ Error al procesar: ' + (error.response?.data.message || 'Error de conexión.'));
+            const res = await axios.post(`${API_BASE_URL}/submit-shipment`, payload);
+            setMessage(res.data.message + ' Revisa tu correo (incluso spam).');
+            setFormData({
+                clientEmail: '',
+                destination: '',
+                realWeight: '',
+                dimensions: '',
+                pieces: 1,
+                isDangerousGoods: false,
+                unNumber: '',
+                dgClassPrimary: ''
+            });
+        } catch (err) {
+            console.error(err);
+            setMessage('❌ Error al procesar: ' + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-3xl mx-auto p-10 bg-white shadow-xl rounded-xl">
-            <h2 className="text-3xl font-extrabold mb-6 text-indigo-700 text-center">
-                SmartCargo Advisory ✈️
-            </h2>
-            <p className="text-gray-600 mb-8 text-center">
-                Asegura tu envío. Optimización de peso, dimensiones y revisión documental.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="max-w-3xl w-full bg-white p-8 rounded-xl shadow-lg">
+            <h2 className="text-2xl font-bold text-teal-700 mb-4">SmartCargo Advisory - Validate & Optimize</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="clientEmail" className="block text-sm font-medium text-gray-700">Email (Recibirás el informe)</label>
-                    <input type="email" name="clientEmail" value={formData.clientEmail} onChange={handleChange} required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="contacto@empresa.com"
-                    />
+                    <label className="block text-sm">Email</label>
+                    <input type="email" name="clientEmail" required value={formData.clientEmail} onChange={handleChange}
+                        className="mt-1 w-full p-2 border rounded" placeholder="cliente@empresa.com" />
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="destination" className="block text-sm font-medium text-gray-700">Destino (País/Aeropuerto)</label>
-                        <input type="text" name="destination" value={formData.destination} onChange={handleChange} required
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                                placeholder="MIA, CDMX, MAD..."
-                        />
+                        <label className="block text-sm">Destino (IATA)</label>
+                        <input name="destination" value={formData.destination} onChange={handleChange} required
+                            className="mt-1 w-full p-2 border rounded" placeholder="MIA, CDMX..." />
                     </div>
                     <div>
-                        <label htmlFor="realWeight" className="block text-sm font-medium text-gray-700">Peso Real (Kg)</label>
-                        <input type="number" name="realWeight" value={formData.realWeight} onChange={handleChange} required step="0.01"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                                placeholder="Ej: 50.5"
-                        />
+                        <label className="block text-sm">Peso real (Kg)</label>
+                        <input name="realWeight" type="number" step="0.01" value={formData.realWeight} onChange={handleChange} required
+                            className="mt-1 w-full p-2 border rounded" placeholder="50.5" />
                     </div>
                 </div>
 
                 <div>
-                    <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700">Dimensiones (Largo x Ancho x Alto, en cm)</label>
-                    <input type="text" name="dimensions" value={formData.dimensions} onChange={handleChange} required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
-                            placeholder="Ej: 80x60x40"
-                    />
+                    <label className="block text-sm">Dimensiones por pieza (LxWxH en cm)</label>
+                    <input name="dimensions" value={formData.dimensions} onChange={handleChange} required
+                        className="mt-1 w-full p-2 border rounded" placeholder="80x60x40" />
                 </div>
-                
+
+                <div>
+                    <label className="block text-sm">Número de piezas</label>
+                    <input name="pieces" type="number" min="1" value={formData.pieces} onChange={handleChange}
+                        className="mt-1 w-full p-2 border rounded" />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="isDangerousGoods" name="isDangerousGoods" checked={formData.isDangerousGoods} onChange={handleChange} />
+                    <label htmlFor="isDangerousGoods" className="text-sm">Contiene Dangerous Goods (DG)? (Referencial)</label>
+                </div>
+
+                {formData.isDangerousGoods && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-sm">UN Number</label>
+                            <input name="unNumber" value={formData.unNumber} onChange={handleChange} className="mt-1 w-full p-2 border rounded" />
+                        </div>
+                        <div>
+                            <label className="block text-sm">Clase primaria (ej: 3, 6.1)</label>
+                            <input name="dgClassPrimary" value={formData.dgClassPrimary} onChange={handleChange} className="mt-1 w-full p-2 border rounded" />
+                        </div>
+                    </div>
+                )}
+
                 <button type="submit" disabled={loading}
-                        className="w-full bg-indigo-600 text-white p-4 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-300 transition duration-150 shadow-md">
-                    {loading ? 'Validando y enviando informe...' : 'Validar y Optimizar mi Envío por Asesoría'}
+                    className="mt-3 w-full py-3 bg-teal-600 text-white rounded font-semibold">
+                    {loading ? 'Validando y enviando...' : 'Validar y optimizar mi envío'}
                 </button>
             </form>
-            
-            {message && <p className={`mt-6 text-center text-base ${message.includes('❌') ? 'text-red-600' : 'text-green-600'}`}>{message}</p>}
+
+            {message && <p className={`mt-4 text-center ${message.includes('❌') ? 'text-red-600' : 'text-green-600'}`}>{message}</p>}
         </div>
     );
 };
 
-export default ShipmentForm
+export default ShipmentForm;
