@@ -1,67 +1,57 @@
-// Carga las variables de entorno al inicio
-import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config';
 
+// Importación de rutas
+import shipmentRoutes from './routes/shipmentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js'; 
+
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+// Configuración para usar ES Modules y simular __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// --- Middleware Setup ---
+// 1. Webhooks deben usar el cuerpo RAW (sin procesar) y deben ir primero
+app.use('/api/webhooks', webhookRoutes); 
 
-// Middleware
+// 2. Middleware estándar para el resto de rutas
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
-// ------------------------------------
-// 1. CONEXIÓN A MONGODB ATLAS
-// ------------------------------------
-mongoose.connect(process.env.DATABASE_URI)
-  .then(() => console.log('✅ MongoDB Atlas conectado.'))
-  .catch(err => {
-    console.error('❌ Error CRÍTICO de conexión a MongoDB:', err.message);
-    process.exit(1);
-  });
+// --- Database Connection ---
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('✅ MongoDB Atlas conectado.'))
+    .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
-// ------------------------------------
-// 2. IMPORTAR Y USAR RUTAS DE LA API
-// ------------------------------------
-import shipmentRoutes from './routes/shipmentRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import webhookRoutes from './routes/webhookRoutes.js';
-
-app.use('/api', shipmentRoutes);
+// --- API Routes ---
+app.use('/api/shipments', shipmentRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/webhook', webhookRoutes);
 
-// Ruta de prueba
-app.get('/api/status', (req, res) => {
-  res.send('SmartCargo API activa y funcionando.');
+// --- STATIC FILE SERVING FIX (CRITICAL) ---
+// Resolve el error ENOENT: no such file or directory.
+// Apuntamos al directorio 'client' (un nivel arriba del directorio 'server').
+const clientPath = path.join(__dirname, '..', 'client'); 
+console.log(`[Express] Sirviendo archivos estáticos desde: ${clientPath}`);
+app.use(express.static(clientPath));
+
+// Fallback: Para todas las demás peticiones GET, enviamos el index.html principal (comportamiento de SPA)
+// Esto asegura que la aplicación cargue correctamente independientemente de la ruta.
+app.get('*', (req, res) => {
+    // Apunta directamente a 'index.html' dentro del directorio 'client'
+    res.sendFile(path.join(clientPath, 'index.html'));
 });
 
-// ------------------------------------
-// 3. SERVIR EL FRONTEND COMPILADO (PRODUCCIÓN)
-// ------------------------------------
-if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '../client/dist');
-  app.use(express.static(frontendPath));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(frontendPath, 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.send('SmartCargo Advisory API activa. Estado: Operacional.');
-  });
-}
-
-// ------------------------------------
-// 4. INICIAR SERVIDOR
-// ------------------------------------
+// --- Server Start ---
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
+    console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
 });
