@@ -1,11 +1,12 @@
 {
   "name": "smartcargo-server",
   "version": "1.0.0",
-  "description": "SmartCargo Advisory Web Service (Backend + Frontend integrado)",
+  "description": "SmartCargo Advisory Web Service (Backend + Frontend integrated)",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "build": "cd ../client && npm install && npm run build"
+    "start": "node server/server.js",
+    "postinstall": "cd client && npm install && npm run build"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -17,9 +18,9 @@
     "dotenv": "^16.3.1",
     "express": "^4.19.2",
     "mongoose": "^7.6.0",
-    "stripe": "^15.0.0"
-  },
-  "devDependencies": {},
-  "author": "Maykel Rodríguez García - May Roga LLC",
-  "license": "MIT"
+    "stripe": "^15.0.0",
+    "puppeteer-core": "^22.14.0",
+    "nodemailer": "^6.9.13",
+    "uuid": "^9.0.1"
+  }
 }
