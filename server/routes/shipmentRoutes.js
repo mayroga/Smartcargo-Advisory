@@ -1,86 +1,89 @@
+// server/routes/shipmentRoutes.js
 import express from 'express';
+import Shipment from '../models/Shipment.js';
+import { runOptimizationEngine } from '../services/optimizerService.js';
+import { generateValidationPDF } from '../services/pdfService.js';
+import { sendValidationEmail } from '../services/emailService.js';
 import Stripe from 'stripe';
-import Shipment from '../models/Shipment.js'; // Importación cambiada
-import { sendValidationEmail } from '../services/emailService.js'; // Importación cambiada
-import { generateValidationPDF } from '../services/pdfService.js'; // Importación cambiada
+import 'dotenv/config';
 
 const router = express.Router();
-// Inicialización de Stripe para ES Modules
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || ''); // will warn if empty
 
-// Función de Simulación de Validación (Aquí va tu LÓGICA DE NEGOCIO REAL)
-const runOptimizationEngine = (data) => {
-    const [l, w, h] = data.dimensions.split('x').map(Number);
-    // Fórmula Aérea IATA: L*W*H / 6000
-    const dimWeight = (l * w * h) / 6000;
-    const realWeight = parseFloat(data.realWeight);
-    const billingWeight = Math.max(realWeight, dimWeight); // Siempre se cobra el mayor
-    
-    // Lógica de Ahorro: Asume que se puede ahorrar 15% del flete estimado si se optimiza
-    const potentialFleteCost = billingWeight * 5; // Simulación: $5 USD por kg cobrable
-    const savingsEstimate = (dimWeight > realWeight) ? (potentialFleteCost * 0.15) : 0;
-    
-    // Tarifa de SmartCargo: 25% de la comisión sobre el ahorro (o tarifa fija si ahorro=0)
-    const feeCharged = Math.max(25, savingsEstimate * 0.25); // Mínimo $25 USD
-    
-    let suggestions = "Documentación inicial validada y completa.";
-    if (savingsEstimate > 0) {
-        suggestions += ` Recomendación: Reducir dimensiones para ahorrar $${savingsEstimate.toFixed(2)}.`;
-    }
-    
-    return {
-        calculatedDimWeight: dimWeight, // Añadido para guardar el valor
-        billingWeight: billingWeight,
-        savingsEstimate: savingsEstimate,
-        feeCharged: feeCharged,
-        optimizationSuggestions: suggestions,
-        documentsValid: true // Simulación. Aquí iría la validación documental real.
-    };
-};
-
-// POST /api/submit-shipment: Procesa la solicitud del cliente
+// POST /api/submit-shipment
 router.post('/submit-shipment', async (req, res) => {
     try {
         const data = req.body;
-        
-        // Ejecutar el motor de validación
-        const optimizationResults = runOptimizationEngine(data);
-        
+
+        // Validate required fields
+        if (!data.clientEmail || !data.destination || !data.dimensions || !data.realWeight) {
+            return res.status(400).json({ message: 'Faltan datos obligatorios: clientEmail, destination, dimensions, realWeight' });
+        }
+
+        // Default pieces if not provided
+        data.pieces = Number(data.pieces || 1);
+
+        // Run optimizer
+        const optimization = runOptimizationEngine(data);
+
+        // Create DB record
         const newShipment = new Shipment({
             ...data,
-            ...optimizationResults,
-            // Disclaimer legal: No se valida en persona
-            optimizationSuggestions: optimizationResults.optimizationSuggestions + " Aviso Legal: La asesoría se basa en datos proporcionados y no incluye inspección física de la mercancía." 
+            ...optimization,
+            optimizationSuggestions: optimization.optimizationSuggestions + " Aviso Legal: Basado en datos proporcionados; no incluye inspección física."
         });
 
         await newShipment.save();
-        
-        // Generar el Payment Intent de Stripe
+
+        // Create Stripe PaymentIntent for fee
         const amountInCents = Math.round(newShipment.feeCharged * 100);
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amountInCents,
-            currency: 'usd',
-            metadata: { shipmentId: newShipment._id.toString() }
-        });
-        
-        newShipment.stripePaymentIntentId = paymentIntent.id;
-        await newShipment.save();
-        
-        // Generación del PDF (el PDF contiene el botón de pago)
-        const pdfBuffer = await generateValidationPDF(newShipment);
-        
-        // Enviar Email con el PDF adjunto y el URL expirable
-        await sendValidationEmail(newShipment, pdfBuffer, paymentIntent.client_secret);
+        let paymentIntent = null;
+        if (process.env.STRIPE_SECRET_KEY) {
+            paymentIntent = await stripe.paymentIntents.create({
+                amount: amountInCents,
+                currency: 'usd',
+                metadata: { shipmentId: newShipment._id.toString() }
+            });
+            newShipment.stripePaymentIntentId = paymentIntent.id;
+            await newShipment.save();
+        } else {
+            console.warn('[WARN] STRIPE_SECRET_KEY missing; skipping PaymentIntent creation.');
+        }
 
-        res.status(200).json({ 
-            message: 'Envío procesado, revisa tu correo. El informe expira en 72 horas.',
+        // Generate PDF
+        const pdfBuffer = await generateValidationPDF(newShipment);
+
+        // Send email with PDF and payment link (if client_secret present)
+        const clientSecret = paymentIntent?.client_secret || null;
+        await sendValidationEmail(newShipment, pdfBuffer, clientSecret);
+
+        res.status(200).json({
+            message: 'Envío procesado. Revisa tu correo (incluye PDF e instrucciones de pago).',
             token: newShipment.pdfToken
         });
 
     } catch (error) {
-        console.error('Error CRÍTICO al procesar el envío:', error);
-        res.status(500).json({ message: 'Error interno del servidor. Por favor, revisa logs.' });
+        console.error('Error processing shipment:', error);
+        res.status(500).json({ message: 'Error interno del servidor al procesar el envío.' });
     }
 });
 
-export default router; // Exportación cambiada
+// GET endpoint to download PDF (simple, checks token)
+router.get('/download/:token', async (req, res) => {
+    try {
+        const token = req.params.token;
+        const shipment = await Shipment.findOne({ pdfToken: token });
+        if (!shipment) return res.status(404).send('Informe no encontrado o token inválido.');
+
+        // For simplicity, regenerate PDF on download (could store buffer in future)
+        const pdfBuffer = await generateValidationPDF(shipment);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=SmartCargo_Report_${shipment._id.toString().slice(-6)}.pdf`);
+        res.send(pdfBuffer);
+    } catch (err) {
+        console.error('PDF download error:', err);
+        res.status(500).send('Error generando documento PDF.');
+    }
+});
+
+export default router;
