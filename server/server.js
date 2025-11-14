@@ -1,3 +1,4 @@
+// server/server.js
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -6,52 +7,57 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
-// Importación de rutas
+// Routes
 import shipmentRoutes from './routes/shipmentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import webhookRoutes from './routes/webhookRoutes.js'; 
+import webhookRoutes from './routes/webhookRoutes.js';
+import appsRouter from './apps.js';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Configuración para usar ES Modules y simular __dirname
+// __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Middleware Setup ---
-// 1. Webhooks deben usar el cuerpo RAW (sin procesar) y deben ir primero
-app.use('/api/webhooks', webhookRoutes); 
+// --- IMPORTANT: webhook raw body must be mounted BEFORE express.json() ---
+app.use('/api/webhooks', webhookRoutes); // webhook route expects raw body
 
-// 2. Middleware estándar para el resto de rutas
+// Standard middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
-// --- Database Connection ---
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Atlas conectado.'))
-    .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
+// Connect to MongoDB
+if (!process.env.MONGODB_URI) {
+  console.warn('[WARN] MONGODB_URI not set. DB connection will likely fail.');
+}
+mongoose.connect(process.env.MONGODB_URI || '', {
+  // options if necessary
+}).then(() => console.log('✅ MongoDB Atlas conectado.'))
+  .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
-// --- API Routes ---
+// API routes
 app.use('/api/shipments', shipmentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/apps', appsRouter); // health routes etc.
 
-// --- STATIC FILE SERVING FIX (CRITICAL) ---
-// Resolve el error ENOENT: no such file or directory.
-// Apuntamos al directorio 'client' (un nivel arriba del directorio 'server').
-const clientPath = path.join(__dirname, '..', 'client'); 
-console.log(`[Express] Sirviendo archivos estáticos desde: ${clientPath}`);
-app.use(express.static(clientPath));
+// Serve client static files (production)
+// We expect client build output in ../client/dist
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+console.log(`[Express] Serving static from: ${clientDistPath}`);
+app.use(express.static(clientDistPath));
 
-// Fallback: Para todas las demás peticiones GET, enviamos el index.html principal (comportamiento de SPA)
-// Esto asegura que la aplicación cargue correctamente independientemente de la ruta.
+// Fallback to index.html for SPA routes
 app.get('*', (req, res) => {
-    // Apunta directamente a 'index.html' dentro del directorio 'client'
-    res.sendFile(path.join(clientPath, 'index.html'));
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) {
+      res.status(500).send('Error loading client app');
+    }
+  });
 });
 
-
-// --- Server Start ---
+// Start server
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
 });
