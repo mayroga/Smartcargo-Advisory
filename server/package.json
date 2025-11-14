@@ -1,23 +1,25 @@
 {
-  "name": "smartcargo-server",
-  "version": "1.0.0",
-  "main": "server.js",
-  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "build": "cd ../client && npm install && npm run build"
+    "build": "npm install && node_modules/.bin/install-puppeteer-dependencies",
+    "start": "node server.js"
+    /{
+  "scripts": {
+    "build": "npm install && node_modules/.bin/install-puppeteer-dependencies",
+    "start": "node server.js"
+    // ... other scripts
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.6.1",
-    "cors": "^2.8.5",
-    "axios": "^1.7.2",
-    "body-parser": "^1.20.2",
-    "dotenv": "^16.3.1",
-    "path": "^0.12.7",
-    "puppeteer": "^22.10.0",
-    "stripe": "^15.12.0",
-    "nodemailer": "^6.9.13",
-    "uuid": "^9.0.1"
+    "puppeteer-core": "^22.14.0",
+    "chrome-aws-lambda": "^10.0.0" // Consider using this helper package if on AWS Lambda or similar environments, though less common for Render.
+    // ... your other dependencies
   }
 }
+/ ... other scripts
+  },
+  "dependencies": {
+    "puppeteer-core": "^22.14.0",
+    "chrome-aws-lambda": "^10.0.0" // Consider using this helper package if on AWS Lambda or similar environments, though less common for Render.
+    // ... your other dependencies
+  }
+}
+ 
