@@ -1,99 +1,106 @@
-import puppeteer from 'puppeteer-core'; // <--- ¡CRÍTICO! DEBE SER -CORE
+// server/services/pdfService.js
+import puppeteer from 'puppeteer-core'; // use core in containerized env
+import 'dotenv/config';
 
-// CRITICAL FIX: Use the environment variable to point to the Chromium binary path.
-// This is essential for deployment environments like Render where the default path is not found.
-const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null; 
+const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
 
-/**
- * Generates a professional validation PDF report for the cargo shipment.
- * @param {object} shipmentData - The validated shipment data containing calculation results.
- * @returns {Buffer} - The generated PDF buffer.
- */
 export async function generateValidationPDF(shipmentData) {
     let browser;
     try {
-        if (!executablePath) {
-            console.warn('[PDF Service] PUPPETEER_EXECUTABLE_PATH is not set. Relying on default discovery (may fail in production).');
-        }
-        
-        console.log(`[PDF Service] Attempting to launch browser using path: ${executablePath || 'default'}`);
-
-        // Launch Puppeteer with necessary arguments for a headless Linux environment (Render)
-        browser = await puppeteer.launch({
-            executablePath: executablePath, // Pass the system-configured path
-            headless: 'new', // Use the 'new' headless mode
+        const launchOptions = {
+            headless: 'new',
             args: [
-                '--no-sandbox',             // CRITICAL: Required in shared/containerized environments
+                '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-gpu',
-                '--disable-dev-shm-usage', // Helps prevent memory issues
-                '--single-process'         // Optional: May help stability
-            ],
-            ignoreDefaultArgs: ['--disable-extensions'],
-        });
+                '--disable-dev-shm-usage'
+            ]
+        };
+        if (executablePath) {
+            launchOptions.executablePath = executablePath;
+        }
 
+        browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
-        
-        // --- PDF HTML Content Generation (Mockup for Report) ---
-        // In a real application, this would format the report data beautifully.
+
+        // Ensure safe access to numeric fields
+        const dimWeight = Number(shipmentData.calculatedDimWeight || 0);
+        const billing = Number(shipmentData.billingWeight || 0);
+        const pallets = Number(shipmentData.calculatedPallets || 1);
+
         const htmlContent = `
-            <!DOCTYPE html>
-            <html>
+          <!doctype html>
+          <html>
             <head>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    .header { background-color: #047857; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-                    .disclaimer { border: 2px solid #ef4444; padding: 10px; color: #b91c1c; border-radius: 6px; margin-top: 20px; font-size: 0.8em; }
-                    h1 { font-size: 1.5em; }
-                </style>
+              <meta charset="utf-8" />
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
+                .header { background:#047857; color:white; padding:12px; border-radius:8px; }
+                h1 { margin: 0; font-size: 20px; }
+                .section { margin-top:18px; }
+                .disclaimer { border:1px solid #f87171; padding:8px; color:#991b1b; border-radius:6px; background:#fee2e2; }
+                table { width:100%; border-collapse: collapse; margin-top:10px; }
+                td, th { padding:8px; border-bottom:1px solid #eee; text-align:left; }
+              </style>
             </head>
             <body>
-                <div class="header">
-                    <h1>SmartCargo Validation Report - Compliance Check</h1>
-                </div>
-                <h2>Shipment Details</h2>
+              <div class="header">
+                <h1>SmartCargo Advisory - Validation Report</h1>
+              </div>
+
+              <div class="section">
+                <h2>Shipment</h2>
                 <p><strong>Client Email:</strong> ${shipmentData.clientEmail}</p>
                 <p><strong>Destination:</strong> ${shipmentData.destination}</p>
-                <p><strong>Pieces:</strong> ${shipmentData.pieces}</p>
+                <p><strong>Pieces:</strong> ${shipmentData.pieces || 1}</p>
+              </div>
 
-                <h2>Operational Results (ZERO ERROR)</h2>
-                <p><strong>Actual Weight:</strong> ${shipmentData.realWeight} Kg</p>
-                <p><strong>Dimensional Weight:</strong> ${shipmentData.dimWeight.toFixed(2)} Kg</p>
-                <p><strong>Billable Weight:</strong> ${shipmentData.billingWeight.toFixed(2)} Kg (Chargeable)</p>
-                <p><strong>Estimated Pallets Needed:</strong> ${shipmentData.calculatedPallets}</p>
+              <div class="section">
+                <h2>Operational Results</h2>
+                <table>
+                  <tr><th>Actual Weight</th><td>${Number(shipmentData.realWeight).toFixed(2)} Kg</td></tr>
+                  <tr><th>Dimensional Weight</th><td>${dimWeight.toFixed(2)} Kg</td></tr>
+                  <tr><th>Billable Weight</th><td>${billing.toFixed(2)} Kg</td></tr>
+                  <tr><th>Estimated Pallets</th><td>${pallets}</td></tr>
+                  <tr><th>Estimated Savings</th><td>$${Number(shipmentData.savingsEstimate || 0).toFixed(2)} USD</td></tr>
+                  <tr><th>Fee Charged</th><td>$${Number(shipmentData.feeCharged || 0).toFixed(2)} USD</td></tr>
+                </table>
+              </div>
 
-                ${shipmentData.isDangerousGoods ? `
-                    <h2>Preliminary DG Guidance (REFERENCE ONLY)</h2>
-                    <p><strong>UN Number:</strong> UN ${shipmentData.unNumber}</p>
-                    <p><strong>Primary Class:</strong> ${shipmentData.dgClassPrimary}</p>
-                    <div class="disclaimer">
-                        <strong>⚠️ LIABILITY WARNING:</strong> This DG information is preliminary and informational only. 
-                        It does not replace a certified Shipper's Declaration or the inspection by certified DG personnel. 
-                        The user assumes full responsibility for IATA and customs compliance.
-                    </div>
-                ` : '<h2>Status: Non-Dangerous Goods Shipment</h2>'}
+              <div class="section">
+                <h2>Recommendations</h2>
+                <p>${shipmentData.optimizationSuggestions}</p>
+              </div>
 
+              ${shipmentData.isDangerousGoods ? `
+                <div class="section">
+                  <h2>Dangerous Goods - Preliminary Reference</h2>
+                  <p><strong>UN:</strong> ${shipmentData.unNumber || '---'}</p>
+                  <p><strong>Class:</strong> ${shipmentData.dgClassPrimary || '---'}</p>
+                  <div class="disclaimer"><strong>⚠️ IMPORTANT:</strong> This is a preliminary, non-certified reference only. Final DG compliance requires certified personnel and Shipper's Declaration.</div>
+                </div>
+              ` : ''}
+
+              <div style="font-size:11px;color:#666;margin-top:20px;">
+                This report expires at: ${new Date(shipmentData.pdfExpiresAt).toLocaleString() || 'N/A'}
+              </div>
             </body>
-            </html>
+          </html>
         `;
 
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-        
-        const pdfBuffer = await page.pdf({ 
+        const pdfBuffer = await page.pdf({
             format: 'A4',
-            printBackground: true, // Ensure colors/styles are included
+            printBackground: true,
             margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
         });
 
         return pdfBuffer;
 
-    } catch (error) {
-        console.error("CRITICAL PDF GENERATION FAILURE:", error);
-        // Re-throw the error with better context
-        throw new Error(`PDF generation failed: ${error.message}`);
+    } catch (err) {
+        console.error('PDF generation error:', err);
+        throw new Error(`PDF generation failed: ${err.message}`);
     } finally {
-        if (browser) {
-            await browser.close();
-        }
+        if (browser) await browser.close();
     }
 }
