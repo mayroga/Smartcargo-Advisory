@@ -1,0 +1,40 @@
+// controllers/calculationController.js
+import { calculateCharge } from '../services/calculationService.js';
+
+/**
+ * Maneja la petición de cálculo de peso volumétrico y cobrable.
+ * @param {object} req - Objeto de solicitud de Express.
+ * @param {object} res - Objeto de respuesta de Express.
+ */
+export const handleCalculation = (req, res) => {
+    const data = req.body;
+
+    // 1. Validación de datos minimos (largo, ancho, alto, peso)
+    const requiredFields = ['largo', 'ancho', 'alto', 'peso', 'cantidad', 'unidad', 'pesoUnidad'];
+    const missingFields = requiredFields.filter(field => !data[field] && data[field] !== 0);
+
+    if (missingFields.length > 0) {
+        return res.status(400).json({ 
+            error: "Faltan campos obligatorios para el cálculo.",
+            fields: missingFields
+        });
+    }
+
+    try {
+        // 2. Llamar al servicio de lógica de negocio
+        const result = calculateCharge(data);
+
+        // 3. Responder con los resultados
+        return res.status(200).json({
+            message: "Cálculo de peso volumétrico exitoso.",
+            calculation: result
+        });
+
+    } catch (error) {
+        console.error("Error al procesar el cálculo:", error);
+        // Respuesta genérica de error interno
+        return res.status(500).json({ 
+            error: "Error interno del servidor al calcular pesos." 
+        });
+    }
+};
