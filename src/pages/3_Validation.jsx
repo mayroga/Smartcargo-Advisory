@@ -1,21 +1,33 @@
-// Smartcargo-Advisory/src/pages/3_Validation.jsx (Fragmento de manejo de Pallets)
+// Smartcargo-Advisory/src/pages/3_Validation.jsx
 
+import React, { useState, useEffect } from 'react';
 import apiClient from '../api/api_client';
-import { AWB_MANDATORY_FIELDS } from '../requirements/awb_fields';
+// Se asume que este archivo existe y tiene la estructura fija de AWB_MANDATORY_FIELDS
+import { AWB_MANDATORY_FIELDS } from '../requirements/awb_fields'; 
 
+// ==============================================================================
+// 1. PalletValidationComponent (Lógica Corregida 🛠️)
+// ==============================================================================
 const PalletValidationComponent = ({ shipmentId }) => {
-    // Estado para la entrada del usuario
     const [isWood, setIsWood] = useState(false);
     const [hasMark, setHasMark] = useState(false);
     const [criticalWarning, setCriticalWarning] = useState(null);
 
+    // FUNCIÓN CENTRAL DE VALIDACIÓN
     const handlePalletValidation = async () => {
-        const marks = hasMark ? AWB_MANDATORY_FIELDS.find(f => f.key === "ISPM_15").SELLOS_OBLIGATORIOS : ["No Mark"];
+        // Ejecutar solo si el shipmentId existe para evitar llamadas vacías
+        if (!shipmentId) return;
+
+        // Determinar las marcas a enviar. Se usa el estado ACTUAL.
+        const marks = hasMark 
+            ? AWB_MANDATORY_FIELDS.find(f => f.key === "ISPM_15").SELLOS_OBLIGATORIOS 
+            : ["No Mark"];
         
         try {
             const response = await apiClient.post('/cargo/validate/pallet', {
                 shipment_id: shipmentId,
                 is_wood_pallet: isWood,
+                // Si es madera Y tiene marca, envía las marcas; si no, envía vacío o ["No Mark"]
                 pallet_marks: isWood && hasMark ? marks : [] 
             });
 
@@ -30,6 +42,13 @@ const PalletValidationComponent = ({ shipmentId }) => {
             setCriticalWarning("Error de comunicación. Intente validar de nuevo.");
         }
     };
+    
+    // CRÍTICO: Disparar la validación CADA VEZ que el estado cambia
+    useEffect(() => {
+        // Dispara la validación cuando isWood o hasMark cambian
+        handlePalletValidation();
+    }, [isWood, hasMark, shipmentId]);
+
 
     return (
         <div className="validation-pallet-section">
@@ -42,7 +61,8 @@ const PalletValidationComponent = ({ shipmentId }) => {
             {isWood && (
                 <label>
                     ¿Tiene sello HT/ISPM-15 visible?
-                    <input type="checkbox" checked={hasMark} onChange={(e) => {setHasMark(e.target.checked); handlePalletValidation();}} />
+                    <input type="checkbox" checked={hasMark} onChange={(e) => setHasMark(e.target.checked)} />
+                    {/* Eliminamos handlePalletValidation() de onChange para usar useEffect */}
                 </label>
             )}
             
@@ -55,29 +75,35 @@ const PalletValidationComponent = ({ shipmentId }) => {
         </div>
     );
 };
-// Smartcargo-Advisory/src/pages/3_Validation.jsx (Fragmento de la función de envío de fotos)
 
-// ... (Importaciones existentes)
 
+// ==============================================================================
+// 2. PhotoValidationSection (Señalización de Incompletitud)
+// ==============================================================================
 const PhotoValidationSection = ({ shipmentId, commodityDescription }) => {
-    // ... (Estados para manejo de archivos y resultados)
-
+    // Es necesario declarar los estados aquí (ej: iaAdvice, selectedImageFile)
+    const [iaAdvice, setIaAdvice] = useState(null);
+    const [selectedImageFile, setSelectedImageFile] = useState(null); 
+    
     const handlePhotoUploadAndAnalyze = async () => {
+        if (!selectedImageFile) {
+            alert("Por favor, seleccione una imagen para el análisis.");
+            return;
+        }
+
         const formData = new FormData();
         formData.append('shipment_id', shipmentId);
         formData.append('commodity_description', commodityDescription);
-        // formData.append('image', selectedImageFile); // El archivo de la imagen
+        formData.append('image', selectedImageFile); // Usamos el estado declarado arriba
         
         try {
-            // Llamada al nuevo Endpoint Fijo
             const response = await apiClient.post('/cargo/validate/photo', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             
-            // Mostrar la sugerencia suave de la IA (6.4)
             setIaAdvice(response.data.ia_advice); 
             
-            // Mostrar la advertencia DG crítica si aplica (6.5)
+            // Blindaje DG (6.5)
             if (response.data.dg_risk === "ALTO") {
                 alert(response.data.warning); 
             }
@@ -89,8 +115,19 @@ const PhotoValidationSection = ({ shipmentId, commodityDescription }) => {
     return (
         <div className="photo-validation">
             <h3>📸 Validación Fotográfica por IA (6.4)</h3>
-            {/* Componente de subida de archivos */}
-            <button onClick={handlePhotoUploadAndAnalyze}>Analizar Foto y Riesgos</button>
+            <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => setSelectedImageFile(e.target.files[0])} 
+            />
+            
+            <button 
+                onClick={handlePhotoUploadAndAnalyze} 
+                disabled={!selectedImageFile}
+            >
+                Analizar Foto y Riesgos
+            </button>
+            
             {iaAdvice && (
                 <div className="advice-box">
                     <strong>Sugerencia de la IA:</strong>
@@ -100,21 +137,22 @@ const PhotoValidationSection = ({ shipmentId, commodityDescription }) => {
         </div>
     );
 };
-// Smartcargo-Advisory/src/pages/3_Validation.jsx (Fragmento de integración de temperatura)
 
-// ... (Importaciones existentes)
 
+// ==============================================================================
+// 3. TemperatureValidationComponent (Integración de Temperatura)
+// ==============================================================================
 const TemperatureValidationComponent = ({ shipmentId, commodity }) => {
     const [duration, setDuration] = useState(48);
     const [tempSuggestions, setTempSuggestions] = useState(null);
 
     const handleTempValidation = async () => {
         try {
-            // 1. Llamada al nuevo Endpoint Fijo
             const response = await apiClient.post('/cargo/validate/temperature', {
                 shipment_id: shipmentId,
                 commodity: commodity, 
-                required_temp_range: [2.0, 8.0], // Asumiendo un rango común de ejemplo
+                // Se envía un rango fijo de ejemplo, idealmente derivado de la commodity
+                required_temp_range: [2.0, 8.0], 
                 duration_hours: duration
             });
 
@@ -139,9 +177,12 @@ const TemperatureValidationComponent = ({ shipmentId, commodity }) => {
                     <ul>
                         {tempSuggestions.map((s, i) => <li key={i}>{s}</li>)}
                     </ul>
-                    {/* Recordatorio de DRY ICE DECLARADO si se sugiere */}
+                    {/* Recordatorio de DRY ICE DECLARADO (Contenido en la recomendación del backend) */}
                 </div>
             )}
         </div>
     );
 };
+
+// Exporta todos los componentes necesarios
+export { PalletValidationComponent, PhotoValidationSection, TemperatureValidationComponent };
