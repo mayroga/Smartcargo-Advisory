@@ -55,3 +55,48 @@ const PalletValidationComponent = ({ shipmentId }) => {
         </div>
     );
 };
+// Smartcargo-Advisory/src/pages/3_Validation.jsx (Fragmento de la función de envío de fotos)
+
+// ... (Importaciones existentes)
+
+const PhotoValidationSection = ({ shipmentId, commodityDescription }) => {
+    // ... (Estados para manejo de archivos y resultados)
+
+    const handlePhotoUploadAndAnalyze = async () => {
+        const formData = new FormData();
+        formData.append('shipment_id', shipmentId);
+        formData.append('commodity_description', commodityDescription);
+        // formData.append('image', selectedImageFile); // El archivo de la imagen
+        
+        try {
+            // Llamada al nuevo Endpoint Fijo
+            const response = await apiClient.post('/cargo/validate/photo', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
+            // Mostrar la sugerencia suave de la IA (6.4)
+            setIaAdvice(response.data.ia_advice); 
+            
+            // Mostrar la advertencia DG crítica si aplica (6.5)
+            if (response.data.dg_risk === "ALTO") {
+                alert(response.data.warning); 
+            }
+        } catch (error) {
+            alert("Error en el análisis de la foto. Intente de nuevo.");
+        }
+    };
+    
+    return (
+        <div className="photo-validation">
+            <h3>📸 Validación Fotográfica por IA (6.4)</h3>
+            {/* Componente de subida de archivos */}
+            <button onClick={handlePhotoUploadAndAnalyze}>Analizar Foto y Riesgos</button>
+            {iaAdvice && (
+                <div className="advice-box">
+                    <strong>Sugerencia de la IA:</strong>
+                    <p>{iaAdvice}</p>
+                </div>
+            )}
+        </div>
+    );
+};
