@@ -100,3 +100,48 @@ const PhotoValidationSection = ({ shipmentId, commodityDescription }) => {
         </div>
     );
 };
+// Smartcargo-Advisory/src/pages/3_Validation.jsx (Fragmento de integración de temperatura)
+
+// ... (Importaciones existentes)
+
+const TemperatureValidationComponent = ({ shipmentId, commodity }) => {
+    const [duration, setDuration] = useState(48);
+    const [tempSuggestions, setTempSuggestions] = useState(null);
+
+    const handleTempValidation = async () => {
+        try {
+            // 1. Llamada al nuevo Endpoint Fijo
+            const response = await apiClient.post('/cargo/validate/temperature', {
+                shipment_id: shipmentId,
+                commodity: commodity, 
+                required_temp_range: [2.0, 8.0], // Asumiendo un rango común de ejemplo
+                duration_hours: duration
+            });
+
+            setTempSuggestions(response.data.recommendations);
+        } catch (error) {
+            console.error("Error al validar temperatura:", error);
+        }
+    };
+
+    return (
+        <div className="validation-temp-section">
+            <h3>🌡 Validación de Temperatura (6.6)</h3>
+            <label>
+                Tiempo de tránsito (horas):
+                <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} />
+            </label>
+            <button onClick={handleTempValidation}>Obtener Sugerencias Térmicas</button>
+            
+            {tempSuggestions && (
+                <div className="suggestions-box">
+                    <strong>SmartCargo Recomienda:</strong>
+                    <ul>
+                        {tempSuggestions.map((s, i) => <li key={i}>{s}</li>)}
+                    </ul>
+                    {/* Recordatorio de DRY ICE DECLARADO si se sugiere */}
+                </div>
+            )}
+        </div>
+    );
+};
