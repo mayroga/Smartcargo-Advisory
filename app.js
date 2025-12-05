@@ -5,7 +5,7 @@ const ELEGANT_SERVICE_TIERS = [
     { name: "Plan Operador (Mensual)", price: "$99.00" },
     { name: "Plan Corporativo (Anual)", price: "$999.00" }
 ];
-// Configuración por defecto: FREE. Cambiar a "pay" para simular pagos.
+// Configuración FINAL: FREE
 const BACKEND_MODE = "free"; 
 
 // ================================= MULTILENGUAJE (MISIÓN) =================================
@@ -15,7 +15,7 @@ const LANGS = {
         cargas: "Active Shipments",
         documentos: "Upload Documents/Photos",
         alertas: "Generated Alerts by AIPA 🚨",
-        advisory: "SmartCargo Consulting (Direct Solutions)", // Nuevo Nombre
+        advisory: "SmartCargo Consulting (Direct Solutions)", 
         pagos: "Premium Plans and Services",
         riesgo: "General Rejection Risk",
         upload_btn: "Upload and Verify",
@@ -38,7 +38,7 @@ const LANGS = {
         cargas: "Cargas Activas",
         documentos: "Subir Documentos/Fotos",
         alertas: "Alertas Generadas por AIPA 🚨",
-        advisory: "SmartCargo Consulting (Soluciones Directas)", // Nuevo Nombre
+        advisory: "SmartCargo Consulting (Soluciones Directas)",
         pagos: "Planes y Servicios Premium",
         riesgo: "Riesgo General de Rechazo",
         upload_btn: "Subir y Verificar",
@@ -116,8 +116,9 @@ async function refreshCargas() {
             const tr = document.createElement('tr');
             const alertClass = alertas > 0 ? (alertas > 2 ? 'alert-critical' : 'alert-warning') : '';
             
+            // Añadir onclick a la fila para la interacción de la Carga ID
             tr.innerHTML = `
-                <td>${id.substring(0, 8)}...</td>
+                <td onclick="viewCarga('${id}')">${id.substring(0, 8)}...</td>
                 <td>${client}</td>
                 <td>${tipo}</td>
                 <td>${estado}</td>
@@ -128,10 +129,14 @@ async function refreshCargas() {
     } catch (e) { console.error("Error al cargar cargas:", e); document.querySelector('#cargasTableBody').innerHTML = `<tr><td colspan="6" style="color:red;">Error al conectar con el backend.</td></tr>`; }
 }
 
-function viewCarga(id) { alert("Open carga details: " + id); }
+function viewCarga(id) { 
+    // Función de placeholder para dar interacción al ID Carga, ID Alerta y otros campos
+    alert(`Abriendo detalles de la Carga ID: ${id.substring(0, 8)}... (Aquí podría editar, ver documentos, historial, etc.)`); 
+}
 
 function openNewCargaModal() {
     const t = LANGS[LANG];
+    // Se usan prompts para simular campos de texto sencillos y fáciles de llenar
     const client = prompt(t.client_name); if (!client) return;
     const tipo = prompt(t.cargo_type, "Perecederos"); if (!tipo) return;
     const pallet = prompt(t.pallet_type, "madera");
@@ -179,7 +184,7 @@ async function refreshAlertas() {
             else { colorClass = 'alert-info'; emoji = '💡'; }
 
             tr.innerHTML = `
-                <td>${a.carga_id.substring(0, 8)}...</td>
+                <td onclick="viewCarga('${a.carga_id}')">${a.carga_id.substring(0, 8)}...</td>
                 <td class="${colorClass}">${a.nivel} ${emoji}</td>
                 <td>${a.mensaje}</td>
                 <td>${new Date(a.fecha).toLocaleDateString()}</td>`;
@@ -206,7 +211,7 @@ async function refreshAlertas() {
         }
 
         scoreDiv.style.backgroundColor = scoreColor;
-        scoreDiv.style.color = 'black'; // Asegura que el texto siempre sea legible
+        scoreDiv.style.color = 'black'; 
         scoreDiv.style.border = `1px solid ${riskValue >= 70 ? '#f5c6cb' : riskValue >= 40 ? '#ffeeba' : '#c3e6cb'}`;
         
         scoreDiv.innerHTML = `
@@ -300,7 +305,7 @@ function generatePaymentButtons() {
 
     ELEGANT_SERVICE_TIERS.forEach(t => {
         const btn = document.createElement('button');
-        btn.className = BACKEND_MODE === "pay" ? "btn btn-primary" : "btn btn-secondary btn";
+        btn.className = BACKEND_MODE === "pay" ? "btn btn-primary" : "btn btn-secondary btn"; 
         btn.innerText = `${t.name} — ${t.price}`;
         btn.onclick = () => startPayment(parseFloat(t.price.replace(/\$/g, '').replace(/,/g, '')), t.name);
         subsContainer.appendChild(btn);
@@ -321,8 +326,32 @@ function generatePaymentButtons() {
 }
 
 async function startPayment(amount, desc) {
-    if (BACKEND_MODE === "free") { alert(`Pago simulado: ${desc} — Gratis`); return; }
-    alert(`Iniciando pago por ${desc} ($${amount})`);
+    if (BACKEND_MODE === "free") { 
+        alert(`Pago simulado: ${desc} — Gratis. SmartCargo Consulting está actualmente en modo GRATUITO. Disfrute de los servicios sin costo.`); 
+        return; 
+    }
+    
+    // Simulating the actual payment and immediate benefit (download/invoice)
+    try {
+        const fd = new FormData();
+        fd.append('amount', amount);
+        fd.append('description', desc);
+        
+        const res = await fetch(`${BACKEND_URL}/create-payment`, { method: 'POST', body: fd });
+        const data = await res.json();
+
+        alert(`¡Pago simulado de $${amount} por ${desc} completado! 
+               1. Acceso a Descarga (Reporte/Servicio): ${data.download_url} 
+               2. Factura Enviada: Revise su correo electrónico. 
+               3. Factura Almacenada: En el sistema SmartCargo para auditorías (se mantendrá hasta saturación de memoria, excluyendo data crítica).`);
+        
+        // This is where a real application would trigger the download
+        console.log(`Simulated Download Triggered: ${data.download_url}`);
+
+    } catch (e) {
+        console.error("Payment simulation error:", e);
+        alert("Fallo en la simulación de pago.");
+    }
 }
 
 
