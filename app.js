@@ -1,16 +1,6 @@
-import {
-    AWB_MANDATORY_FIELDS,
-    ISPM_15_STANDARD,
-    UNIVERSAL_LABELS
-} from "./cargo_standards.js";
-
-import { CORE_LEGAL_DISCLAIMER } from "./legal_warning.js";
-
-import { ELEGANT_SERVICE_TIERS } from "./pricing.js";
-
 /* ================= CONFIG ================= */
-const BACKEND_URL = "<https://smartcargo-aipa.onrender.com>";
-const BACKEND_MODE = "free"; // cambia a "pay" para activar cobro
+const BACKEND_URL = "https://smartcargo-aipa.onrender.com";
+const BACKEND_MODE = "free"; // cambia a "pay" cuando actives cobro
 document.getElementById('backendUrlDisplay').innerText = BACKEND_URL;
 
 /* ================= PANEL SWITCH ================= */
@@ -34,15 +24,14 @@ async function refreshCargas(){
     const cargas = await res.json();
     const tbody = document.querySelector('#tableCargas tbody');
     tbody.innerHTML = '';
-    (Array.isArray(cargas)?cargas:cargas.cargas||[]).forEach(c=>{
-      const id = c.id??c[0], client=c.cliente??c.client_name??c[1]??'', tipo=c.tipo_carga??c.tipo??c[2]??'', estado=c.estado??c[3]??'En revisión', alertas=c.alertas??c[4]??0;
+    (cargas.cargas||cargas).forEach(c=>{
       const tr = document.createElement('tr');
-      tr.innerHTML=`<td>${id}</td><td>${client}</td><td>${tipo}</td><td>${estado}</td>
-      <td>${alertas>0?`<span style="color:#d9534f;font-weight:700">${alertas}</span>`:alertas}</td>
-      <td><button class="btn btn-sm btn-outline-secondary" onclick="viewCarga(${id})">View</button></td>`;
+      tr.innerHTML=`<td>${c.id}</td><td>${c.cliente}</td><td>${c.tipo_carga}</td><td>${c.estado}</td>
+      <td>${c.alertas>0?`<span style="color:#d9534f;font-weight:700">${c.alertas}</span>`:c.alertas}</td>
+      <td><button class="btn btn-sm btn-outline-secondary" onclick="viewCarga('${c.id}')">View</button></td>`;
       tbody.appendChild(tr);
     });
-  } catch(e){console.error(e); alert("Unable to load cargas. Check backend.");}
+  } catch(e){console.error(e); alert("Unable to load cargas.");}
 }
 function viewCarga(id){ alert("Open carga details: "+id); }
 
@@ -79,7 +68,7 @@ async function runSimulation(){
   try{
     const res = await fetch(`${BACKEND_URL}/simulacion/${encodeURIComponent(tipo)}/${count}`);
     const j = await res.json();
-    alert(`Risk: ${j.riesgo_rechazo||j.risk||'N/A'}`);
+    alert(`Risk: ${j.riesgo_rechazo||'N/A'}`);
   }catch(e){console.error(e); alert("Simulation failed");}
 }
 
@@ -91,7 +80,7 @@ async function askAssistant(){
   try{
     const res = await fetch(`${BACKEND_URL}/advisory`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q})});
     const j = await res.json();
-    chat.innerHTML+=`<div class="msg-aipa">AIPA: ${JSON.stringify(j.data||j).slice(0,800)}</div>`;
+    chat.innerHTML+=`<div class="msg-aipa">AIPA: ${j.data}</div>`;
     chat.scrollTop = chat.scrollHeight;
   }catch(e){chat.innerHTML+=`<div class="msg-aipa"><i>Assistant unavailable.</i></div>`;}
 }
@@ -100,6 +89,12 @@ async function askAssistant(){
 function generatePaymentButtons(){
   const subsContainer = document.getElementById('subscriptionButtons');
   const servContainer = document.getElementById('serviceButtons');
+
+  const ELEGANT_SERVICE_TIERS = [
+    { name: "Revisión Esencial", price: "$35" },
+    { name: "Optimización Completa", price: "$65" },
+    { name: "Asesoría Integral", price: "$120" }
+  ];
 
   // Suscripciones
   ELEGANT_SERVICE_TIERS.forEach(t=>{
@@ -137,7 +132,7 @@ async function startPayment(amount, desc){
 
 /* ================= INIT ================= */
 (function(){
-  setLang('en'); 
+  setLang('es'); 
   refreshCargas(); 
   generatePaymentButtons();
 })();
