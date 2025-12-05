@@ -1,256 +1,268 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo-AIPA Advisory</title>
-
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f2f6fa;
-            color: #111;
-        }
-
-        header {
-            background: #004aad;
-            padding: 15px;
-            color: white;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .container {
-            width: 92%;
-            max-width: 980px;
-            margin: 25px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #00000022;
-        }
-
-        h2 {
-            margin-top: 35px;
-            border-left: 6px solid #004aad;
-            padding-left: 10px;
-        }
-
-        input, select, button, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 15px;
-            border-radius: 7px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            background: #004aad;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #003580;
-        }
-
-        .msgBox {
-            background: #eef4ff;
-            padding: 10px;
-            border-left: 4px solid #004aad;
-            display: none;
-            margin-top: 10px;
-        }
-
-        .chat-box {
-            width: 100%;
-            height: 220px;
-            overflow-y: auto;
-            background: #fafafa;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input {
-            height: 60px;
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SmartCargo-ADVISORY — Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{--brand:#0b4a6f;--accent:#ffb703;}
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:#f3f7fb;color:#0b2135;}
+  header{background:var(--brand);color:white;padding:18px 12px;}
+  .nav-btn{background:transparent;border:0;color:white;margin-right:8px}
+  .panel{display:none;background:white;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(10,20,30,0.06);margin:18px 0}
+  .panel.active{display:block}
+  #assistantBox{position:fixed;right:18px;bottom:18px;width:340px;z-index:1200}
+  #chat{height:240px;overflow:auto;background:white;padding:12px;border-radius:8px;border:1px solid #e6eef6}
+  .msg-user{color:#023047;font-weight:600}
+  .msg-aipa{color:#0b4a6f}
+  .lang-btn{margin-right:6px}
+  .alert-dot{display:inline-block;width:10px;height:10px;background:#ff4d4f;border-radius:50%;margin-left:6px}
+  footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
+  .small-muted{font-size:13px;color:#6b7b8c}
+</style>
 </head>
-
 <body>
 
-<header>SMARTCARGO-AIPA – Panel del Cliente</header>
+<header class="d-flex align-items-center justify-content-between flex-wrap">
+  <div class="d-flex align-items-center">
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' rx='6' fill='%230b4a6f'/><text x='6' y='24' font-size='18' fill='white'>A</text></svg>" alt="logo" style="margin-right:10px">
+    <div>
+      <h4 style="margin:0">SmartCargo-ADVISORY</h4>
+      <div class="small-muted">Asesoría preventiva para proteger la mercancía del cliente</div>
+    </div>
+  </div>
 
-<div class="container">
+  <div class="d-flex align-items-center">
+    <nav>
+      <button class="nav-btn" onclick="showPanel('panelCargas')">Cargas</button>
+      <button class="nav-btn" onclick="showPanel('panelDocs')">Documentos</button>
+      <button class="nav-btn" onclick="showPanel('panelAlerts')">Alertas</button>
+      <button class="nav-btn" onclick="showPanel('panelPayments')">Pagos</button>
+      <button class="nav-btn" onclick="showPanel('panelConfig')">Config</button>
+    </nav>
+  </div>
+</header>
 
-    <!-- CARGA -->
-    <h2>Registrar Nueva Carga</h2>
-    <input id="cliente" placeholder="Nombre del cliente">
-    <input id="tipo_carga" placeholder="Tipo de carga">
-    <button onclick="crearCarga()">Registrar Carga</button>
-    <div id="msgCarga" class="msgBox"></div>
+<main class="container my-3">
 
-    <!-- DOCUMENTOS -->
-    <h2>Subir Documentos (PDF/JPG)</h2>
-    <input type="number" id="doc_carga_id" placeholder="ID de la carga">
-    <input type="file" id="documento">
-    <button onclick="subirDocumento()">Subir Documento</button>
-    <div id="msgDocumentos" class="msgBox"></div>
+  <!-- PANEL: CARGAS -->
+  <section id="panelCargas" class="panel active">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0" id="titleCargas">Active Shipments</h5>
+      <div>
+        <button class="btn btn-sm btn-outline-primary" onclick="refreshCargas()">Refresh</button>
+        <button class="btn btn-sm btn-outline-success" onclick="openNewCargaModal()">+ New</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover" id="tableCargas">
+        <thead class="table-light">
+          <tr><th>ID</th><th>Client</th><th>Type</th><th>Status</th><th>Alerts</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
 
-    <!-- FOTOS -->
-    <h2>Subir Fotos</h2>
-    <input type="number" id="foto_carga_id" placeholder="ID de la carga">
-    <input type="file" id="foto">
-    <button onclick="subirFoto()">Subir Foto</button>
-    <div id="msgFotos" class="msgBox"></div>
+  <!-- PANEL: DOCUMENTOS -->
+  <section id="panelDocs" class="panel">
+    <div class="d-flex justify-content-between">
+      <h5>Documents / Upload</h5>
+      <div class="small-muted">Supported: AWB, Invoice, Packing List, SLI</div>
+    </div>
+    <div class="row g-3 mt-2">
+      <div class="col-md-6">
+        <input id="docFile" class="form-control" type="file" />
+      </div>
+      <div class="col-md-6">
+        <button class="btn btn-primary" onclick="uploadDoc()">Upload & Analyze</button>
+      </div>
+    </div>
+    <div id="docResult" class="mt-3 small-muted"></div>
+  </section>
 
-    <!-- PAGOS -->
-    <h2>Pagos y Suscripciones</h2>
-    <select id="plan">
-        <option value="basico">Servicio Básico – $35</option>
-        <option value="profesional">Servicio Profesional – $65</option>
-        <option value="premium">Servicio Premium – $120</option>
-        <option value="suscripcion_mensual">Suscripción Mensual</option>
-        <option value="suscripcion_anual">Suscripción Anual</option>
-    </select>
-    <button onclick="pagar()">Pagar Ahora</button>
-    <div id="msgPago" class="msgBox"></div>
+  <!-- PANEL: ALERTAS & SIMULATIONS -->
+  <section id="panelAlerts" class="panel">
+    <h5>Alerts & Simulations</h5>
+    <div class="row g-3 mt-2">
+      <div class="col-md-4">
+        <label class="form-label">Cargo type</label>
+        <select id="simTipo" class="form-select">
+          <option value="Perishables">Perishables</option>
+          <option value="DG">Dangerous Goods</option>
+          <option value="Animals">Live Animals</option>
+          <option value="Fragile">Fragile</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Detected Issues (count)</label>
+        <input id="simCount" class="form-control" type="number" min="0" value="0" />
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-warning w-100" onclick="runSimulation()">Run Simulation</button>
+      </div>
+    </div>
+    <div id="simResult" class="mt-3"></div>
+  </section>
 
-    <!-- ASISTENTE AIPA -->
-    <h2>Asistente Inteligente AIPA</h2>
-    <div class="chat-box" id="chat"></div>
-    <textarea id="chatInput" class="chat-input" placeholder="Escribe tu duda..."></textarea>
-    <button onclick="enviarPregunta()">Enviar</button>
+  <!-- PANEL: PAGOS -->
+  <section id="panelPayments" class="panel">
+    <h5>Subscriptions & Services</h5>
+    <p class="small-muted">Choose one plan or pay per service. Payments processed securely by Stripe.</p>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-outline-primary" onclick="startPayment(29,'Basic Monthly')">Basic Monthly — $29</button>
+      <button class="btn btn-primary" onclick="startPayment(59,'Premium Monthly')">Premium Monthly — $59</button>
+      <button class="btn btn-outline-primary" onclick="startPayment(295,'Basic Annual')">Basic Annual — $295</button>
+      <button class="btn btn-primary" onclick="startPayment(595,'Premium Annual')">Premium Annual — $595</button>
+    </div>
+    <hr />
+    <h6>Pay per service</h6>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-sm btn-outline-secondary" onclick="startPayment(10,'Upload & Verify Cargo')">$10 Upload & Verify</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="startPayment(15,'Advanced Simulation')">$15 Simulation</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="startPayment(12,'Report PDF/Excel')">$12 Report</button>
+    </div>
+  </section>
+
+  <!-- PANEL: CONFIG -->
+  <section id="panelConfig" class="panel">
+    <h5>Configuration & Language</h5>
+    <div class="d-flex gap-2 mt-2">
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('en')">English</button>
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('es')">Español</button>
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('fr')">Français</button>
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('de')">Deutsch</button>
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('pt')">Português</button>
+      <button class="btn btn-outline-dark lang-btn" onclick="setLang('zh')">中文</button>
+    </div>
+    <div class="mt-3 small-muted">
+      <p><b>Backend URL:</b> <span id="backendUrlDisplay"></span></p>
+      <p>Tip: configure CORS in backend to allow this frontend origin for production.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ASSISTANT -->
+<div id="assistantBox">
+  <div class="card" style="border-radius:12px;overflow:hidden">
+    <div class="card-body p-2">
+      <h6 class="mb-2" style="color:white;background:var(--brand);padding:8px;border-radius:6px">AIPA Assistant</h6>
+      <div id="chat"></div>
+      <div class="mt-2">
+        <input id="qInput" class="form-control mb-2" placeholder="Ask the assistant">
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-warning w-100" onclick="askAssistant()">Ask</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-
-<!-- ==================== LOGICA FRONTEND ==================== -->
-<script type="module" src="standards.js"></script>
+<footer class="my-3">
+  <div class="container small-muted">SmartCargo-ADVISORY • Advising only — not a certifier • © SmartCargo</div>
+</footer>
 
 <script>
-const API = "/api";  // Render lo ajusta automáticamente
+/* ================= CONFIG ================= */
+const BACKEND_URL = "<REPLACE_WITH_YOUR_SMARTCARGO-AIPA_URL>";
+const BACKEND_MODE = "free"; // cambia a "pay" para activar cobro
+document.getElementById('backendUrlDisplay').innerText = BACKEND_URL;
 
-
-// =============== CREAR CARGA ==================
-async function crearCarga() {
-    const cliente = document.getElementById("cliente").value;
-    const tipo_carga = document.getElementById("tipo_carga").value;
-
-    const res = await fetch(`${API}/cargas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cliente, tipo_carga })
-    });
-
-    const data = await res.json();
-    showMsg("msgCarga", "Carga creada con ID: " + data.id);
+/* ================= PANEL SWITCH ================= */
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
+/* ================= LANGUAGES ================= */
+const LANGS = {en:{cargas:"Active Shipments"},es:{cargas:"Cargas activas"}};
+let LANG='en';
+function setLang(l){ LANG=l; document.getElementById('titleCargas').innerText = LANGS[l]?.cargas || LANGS['en'].cargas; }
 
-
-// =============== SUBIR DOCUMENTOS ==================
-async function subirDocumento() {
-    const carga_id = document.getElementById("doc_carga_id").value;
-    const file = document.getElementById("documento").files[0];
-
-    const form = new FormData();
-    form.append("carga_id", carga_id);
-    form.append("file", file);
-
-    const res = await fetch(`${API}/documentos`, {
-        method: "POST",
-        body: form
+/* ================= CARGAS ================= */
+async function refreshCargas(){
+  try{
+    const res = await fetch(`${BACKEND_URL}/cargas`);
+    const cargas = await res.json();
+    const tbody = document.querySelector('#tableCargas tbody');
+    tbody.innerHTML = '';
+    (Array.isArray(cargas)?cargas:cargas.cargas||[]).forEach(c=>{
+      const id = c.id??c[0], client=c.cliente??c.client_name??c[1]??'', tipo=c.tipo_carga??c.tipo??c[2]??'', estado=c.estado??c[3]??'En revisión', alertas=c.alertas??c[4]??0;
+      const tr = document.createElement('tr');
+      tr.innerHTML=`<td>${id}</td><td>${client}</td><td>${tipo}</td><td>${estado}</td>
+      <td>${alertas>0?`<span style="color:#d9534f;font-weight:700">${alertas}</span>`:alertas}</td>
+      <td><button class="btn btn-sm btn-outline-secondary" onclick="viewCarga(${id})">View</button></td>`;
+      tbody.appendChild(tr);
     });
+  } catch(e){console.error(e); alert("Unable to load cargas. Check backend.");}
+}
+function viewCarga(id){ alert("Open carga details: "+id); }
 
+/* ================= NEW CARGA ================= */
+function openNewCargaModal(){
+  const client = prompt("Client name:"); if(!client) return;
+  const tipo = prompt("Cargo type:","Perishables");
+  createCarga({cliente: client, tipo_carga: tipo});
+}
+async function createCarga(payload){
+  try{
+    const res = await fetch(`${BACKEND_URL}/cargas`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     const data = await res.json();
-    showMsg("msgDocumentos", "Documento subido y procesado.");
+    alert("Carga created id: "+(data.id||'OK'));
+    refreshCargas();
+  } catch(e){console.error(e); alert("Error creating carga.");}
 }
 
-
-
-// =============== SUBIR FOTOS ==================
-async function subirFoto() {
-    const carga_id = document.getElementById("foto_carga_id").value;
-    const file = document.getElementById("foto").files[0];
-
-    const form = new FormData();
-    form.append("carga_id", carga_id);
-    form.append("file", file);
-
-    const res = await fetch(`${API}/fotos`, {
-        method: "POST",
-        body: form
-    });
-
-    const data = await res.json();
-    showMsg("msgFotos", "Foto cargada correctamente.");
+/* ================= DOCUMENTS ================= */
+async function uploadDoc(){
+  const input=document.getElementById('docFile'); if(!input.files.length){alert("Choose file"); return;}
+  const fd = new FormData(); fd.append('file', input.files[0]);
+  try{
+    const res = await fetch(`${BACKEND_URL}/upload`,{method:'POST',body:fd});
+    const j = await res.json();
+    alert("File uploaded: "+(j.data?.filename||''));
+  }catch(e){console.error(e);alert("Upload failed");}
 }
 
-
-
-// =============== PAGOS ==================
-async function pagar() {
-    const plan = document.getElementById("plan").value;
-
-    const res = await fetch(`${API}/stripe/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan })
-    });
-
-    const data = await res.json();
-
-    if (data.url) {
-        window.location.href = data.url;
-    } else {
-        showMsg("msgPago", "Error al generar el pago.");
-    }
+/* ================= SIMULATION ================= */
+async function runSimulation(){
+  const tipo=document.getElementById('simTipo').value;
+  const count=parseInt(document.getElementById('simCount').value||'0');
+  try{
+    const res = await fetch(`${BACKEND_URL}/simulacion/${encodeURIComponent(tipo)}/${count}`);
+    const j = await res.json();
+    alert(`Risk: ${j.riesgo_rechazo||j.risk||'N/A'}`);
+  }catch(e){console.error(e); alert("Simulation failed");}
 }
 
-
-
-// =============== AIPA CHAT ==================
-function writeChat(text, sender="aipa") {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.style.marginBottom = "8px";
-    div.innerHTML = `<b>${sender === "aipa" ? "AIPA:" : "Tú:"}</b> ${text}`;
-    chat.appendChild(div);
+/* ================= ASSISTANT ================= */
+async function askAssistant(){
+  const q=document.getElementById('qInput').value.trim(); if(!q) return;
+  const chat=document.getElementById('chat');
+  chat.innerHTML+=`<div class="msg-user">You: ${q}</div>`; document.getElementById('qInput').value='';
+  try{
+    const res = await fetch(`${BACKEND_URL}/advisory`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q})});
+    const j = await res.json();
+    chat.innerHTML+=`<div class="msg-aipa">AIPA: ${JSON.stringify(j.data||j).slice(0,800)}</div>`;
     chat.scrollTop = chat.scrollHeight;
+  }catch(e){chat.innerHTML+=`<div class="msg-aipa"><i>Assistant unavailable.</i></div>`;}
 }
 
-async function enviarPregunta() {
-    const q = document.getElementById("chatInput").value;
-    if (!q.trim()) return;
-
-    writeChat(q, "you");
-    document.getElementById("chatInput").value = "";
-
-    const res = await fetch(`${API}/aipa`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q })
-    });
-
-    const data = await res.json();
-    writeChat(data.answer);
+/* ================= PAYMENTS ================= */
+async function startPayment(amount, desc){
+  if(BACKEND_MODE==="free"){ alert(`Pago simulado: ${desc} — Gratis`); return; }
+  const fd=new FormData(); fd.append('amount',parseInt(amount*100)); fd.append('description',desc);
+  try{
+    const res = await fetch(`${BACKEND_URL}/create-payment`,{method:'POST',body:fd});
+    const j = await res.json();
+    if(j.url) window.location.href=j.url; else alert(j.message||"Payment completed");
+  }catch(e){console.error(e); alert("Payment error");}
 }
 
-
-
-// =============== MENSAJES ==================
-function showMsg(id, txt) {
-    const box = document.getElementById(id);
-    box.innerText = txt;
-    box.style.display = "block";
-}
+/* ================= INIT ================= */
+(function(){ setLang('en'); refreshCargas(); })();
 </script>
-
 </body>
 </html>
