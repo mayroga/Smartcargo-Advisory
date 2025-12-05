@@ -1,94 +1,146 @@
+// =====================================================
+// Configuración inicial
+// =====================================================
 const BACKEND_URL = "https://smartcargo-aipa.onrender.com";
-document.getElementById('backendUrlDisplay').innerText = BACKEND_URL;
 
-// ==================== CARGAS ====================
-async function cargarTabla() {
-  const res = await fetch(`${BACKEND_URL}/cargas`);
-  const data = await res.json();
-  const tbody = document.getElementById("tableCargas");
-  tbody.innerHTML = "";
-  const cargaSelect = document.getElementById("cargaSelect");
-  cargaSelect.innerHTML = "";
-  data.cargas.forEach(c => {
-    const tr = document.createElement("tr");
-    const fotos = c.fotos.map(f=>`<a href="${BACKEND_URL}/fotos/${f}" target="_blank">Ver</a>`).join(", ");
-    const docs = c.documentos.map(f=>`<a href="${BACKEND_URL}/fotos/${f}" target="_blank">Ver</a>`).join(", ");
-    tr.innerHTML = `<td>${c.id}</td><td>${c.cliente}</td><td>${c.tipo_carga}</td><td>${c.estado}</td><td>${c.alertas}</td><td>${fotos}</td><td>${docs}</td>`;
-    tbody.appendChild(tr);
-    const option = document.createElement("option");
-    option.value = c.id;
-    option.text = `${c.cliente} (${c.id})`;
-    cargaSelect.appendChild(option);
-  });
+// Elementos del DOM
+const cargasTable = document.getElementById("cargasTableBody");
+const alertasTable = document.getElementById("alertasTableBody");
+const uploadForm = document.getElementById("uploadForm");
+const advisoryForm = document.getElementById("advisoryForm");
+const advisoryQuestion = document.getElementById("advisoryQuestion");
+const advisoryResponse = document.getElementById("advisoryResponse");
+const paymentForm = document.getElementById("paymentForm");
+
+// =====================================================
+// FUNCIONES DE CARGAS
+// =====================================================
+async function fetchCargas() {
+    try {
+        const res = await fetch(`${BACKEND_URL}/cargas`);
+        const data = await res.json();
+        cargasTable.innerHTML = "";
+        data.cargas.forEach(carga => {
+            const row = `<tr>
+                <td>${carga.id}</td>
+                <td>${carga.cliente}</td>
+                <td>${carga.tipo_carga}</td>
+                <td>${carga.estado}</td>
+                <td>${carga.alertas}</td>
+            </tr>`;
+            cargasTable.innerHTML += row;
+        });
+    } catch (err) {
+        console.error("Error cargando cargas:", err);
+    }
 }
 
-async function crearCarga() {
-  const cliente = prompt("Nombre del cliente:");
-  if(!cliente) return;
-  const tipo = prompt("Tipo de carga:", "Perishables");
-  const fd = new FormData();
-  fd.append("cliente", cliente);
-  fd.append("tipo_carga", tipo);
-  await fetch(`${BACKEND_URL}/cargas`, {method:"POST", body:fd});
-  cargarTabla();
+// =====================================================
+// FUNCIONES DE ALERTAS
+// =====================================================
+async function fetchAlertas() {
+    try {
+        const res = await fetch(`${BACKEND_URL}/alertas`);
+        const data = await res.json();
+        alertasTable.innerHTML = "";
+        data.alertas.forEach(alerta => {
+            const row = `<tr>
+                <td>${alerta.id}</td>
+                <td>${alerta.tipo_carga}</td>
+                <td>${alerta.nivel}</td>
+                <td>${alerta.mensaje}</td>
+                <td>${alerta.fecha}</td>
+            </tr>`;
+            alertasTable.innerHTML += row;
+        });
+    } catch (err) {
+        console.error("Error cargando alertas:", err);
+    }
 }
 
-// ==================== UPLOAD ====================
-async function uploadFile() {
-  const fileInput = document.getElementById("fileInput");
-  const cargaId = document.getElementById("cargaSelect").value;
-  const tipo = document.getElementById("tipoSelect").value;
-  if(!fileInput.files.length || !cargaId) return alert("Selecciona archivo y carga");
-  const fd = new FormData();
-  fd.append("file", fileInput.files[0]);
-  fd.append("carga_id", cargaId);
-  fd.append("tipo", tipo);
-  const res = await fetch(`${BACKEND_URL}/upload`, {method:"POST", body:fd});
-  const j = await res.json();
-  document.getElementById("uploadResult").innerText = `Archivo subido: ${j.filename} (${j.tipo})`;
-  cargarTabla();
-}
+// =====================================================
+// FUNCIONES DE SUBIDA DE DOCUMENTOS / FOTOS
+// =====================================================
+uploadForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+    if (!file) return alert("Selecciona un archivo primero.");
 
-// ==================== SIMULACION ====================
-async function runSimulation() {
-  const tipo = document.getElementById("simTipo").value;
-  const count = parseInt(document.getElementById("simCount").value || "0");
-  const res = await fetch(`${BACKEND_URL}/simulacion/${tipo}/${count}`);
-  const j = await res.json();
-  document.getElementById("simResult").innerText = `Riesgo: ${j.riesgo_rechazo}`;
-}
+    const formData = new FormData();
+    formData.append("file", file);
 
-// ==================== ASSISTANT ====================
-async function askAssistant() {
-  const q = document.getElementById("qInput").value;
-  if(!q) return;
-  document.getElementById("chat").innerHTML += `<div class="msg-user">Tú: ${q}</div>`;
-  const fd = new FormData();
-  fd.append("question", q);
-  const res = await fetch(`${BACKEND_URL}/advisory`, {method:"POST", body:fd});
-  const j = await res.json();
-  document.getElementById("chat").innerHTML += `<div class="msg-aipa">AIPA: ${j.data}</div>`;
-  document.getElementById("qInput").value = "";
-  document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-}
+    try {
+        const res = await fetch(`${BACKEND_URL}/upload`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+        alert("Archivo subido: " + data.data.filename);
+        fileInput.value = "";
+    } catch (err) {
+        console.error("Error subiendo archivo:", err);
+    }
+});
 
-// ==================== PAGOS ====================
-function generarPagos() {
-  const container = document.getElementById("serviceButtons");
-  const servicios = [
-    {name:"Upload & Verify Cargo", price:10},
-    {name:"Advanced Simulation", price:15},
-    {name:"Report PDF/Excel", price:12}
-  ];
-  servicios.forEach(s => {
-    const btn = document.createElement("button");
-    btn.className = "btn btn-sm btn-outline-primary m-1";
-    btn.innerText = `$${s.price} ${s.name}`;
-    btn.onclick = ()=>alert(`Pago simulado: ${s.name} - $${s.price}`);
-    container.appendChild(btn);
-  });
-}
+// =====================================================
+// FUNCIONES DE ADVISORY (GEMINI_API_KEY)
+// =====================================================
+advisoryForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = advisoryQuestion.value.trim();
+    if (!question) return alert("Escribe tu consulta primero.");
 
-// ==================== INIT ====================
-cargarTabla();
-generarPagos();
+    const formData = new FormData();
+    formData.append("question", question);
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/advisory`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+        if (data.error) {
+            advisoryResponse.innerText = "Error: " + data.error;
+        } else {
+            advisoryResponse.innerText = data.data;
+        }
+    } catch (err) {
+        console.error("Error en advisory:", err);
+        advisoryResponse.innerText = "Error conectando con el backend.";
+    }
+});
+
+// =====================================================
+// FUNCIONES DE PAGOS SIMULADOS
+// =====================================================
+paymentForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const amount = document.getElementById("paymentAmount").value;
+    const description = document.getElementById("paymentDesc").value;
+    if (!amount || !description) return alert("Completa todos los campos.");
+
+    const formData = new FormData();
+    formData.append("amount", amount);
+    formData.append("description", description);
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/create-payment`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+        window.open(data.url, "_blank");
+    } catch (err) {
+        console.error("Error creando pago:", err);
+        alert("Error creando el pago.");
+    }
+});
+
+// =====================================================
+// INICIALIZACIÓN
+// =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+    fetchCargas();
+    fetchAlertas();
+});
