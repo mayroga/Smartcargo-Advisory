@@ -9,7 +9,7 @@ import { CORE_LEGAL_DISCLAIMER } from "./legal_warning.js";
 import { ELEGANT_SERVICE_TIERS } from "./pricing.js";
 
 /* ================= CONFIG ================= */
-const BACKEND_URL = "<REPLACE_WITH_YOUR_SMARTCARGO-AIPA_URL>";
+const BACKEND_URL = "<https://smartcargo-aipa.onrender.com>";
 const BACKEND_MODE = "free"; // cambia a "pay" para activar cobro
 document.getElementById('backendUrlDisplay').innerText = BACKEND_URL;
 
