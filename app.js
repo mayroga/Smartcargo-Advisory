@@ -11,7 +11,9 @@ async function cargarTabla() {
   cargaSelect.innerHTML = "";
   data.cargas.forEach(c => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${c.id}</td><td>${c.cliente}</td><td>${c.tipo_carga}</td><td>${c.estado}</td><td>${c.alertas}</td><td>${c.files.join(", ")}</td>`;
+    const fotos = c.fotos.map(f=>`<a href="${BACKEND_URL}/fotos/${f}" target="_blank">Ver</a>`).join(", ");
+    const docs = c.documentos.map(f=>`<a href="${BACKEND_URL}/fotos/${f}" target="_blank">Ver</a>`).join(", ");
+    tr.innerHTML = `<td>${c.id}</td><td>${c.cliente}</td><td>${c.tipo_carga}</td><td>${c.estado}</td><td>${c.alertas}</td><td>${fotos}</td><td>${docs}</td>`;
     tbody.appendChild(tr);
     const option = document.createElement("option");
     option.value = c.id;
@@ -35,13 +37,15 @@ async function crearCarga() {
 async function uploadFile() {
   const fileInput = document.getElementById("fileInput");
   const cargaId = document.getElementById("cargaSelect").value;
+  const tipo = document.getElementById("tipoSelect").value;
   if(!fileInput.files.length || !cargaId) return alert("Selecciona archivo y carga");
   const fd = new FormData();
   fd.append("file", fileInput.files[0]);
   fd.append("carga_id", cargaId);
+  fd.append("tipo", tipo);
   const res = await fetch(`${BACKEND_URL}/upload`, {method:"POST", body:fd});
   const j = await res.json();
-  document.getElementById("uploadResult").innerText = j.filename;
+  document.getElementById("uploadResult").innerText = `Archivo subido: ${j.filename} (${j.tipo})`;
   cargarTabla();
 }
 
@@ -68,7 +72,7 @@ async function askAssistant() {
   document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
 }
 
-// ==================== PAGOS SIMULADOS ====================
+// ==================== PAGOS ====================
 function generarPagos() {
   const container = document.getElementById("serviceButtons");
   const servicios = [
