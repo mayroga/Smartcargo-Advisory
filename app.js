@@ -5,6 +5,7 @@ const ELEGANT_SERVICE_TIERS = [
     { name: "Plan Operador (Mensual)", price: "$99.00" },
     { name: "Plan Corporativo (Anual)", price: "$999.00" }
 ];
+// Configuración por defecto: FREE. Cambiar a "pay" para simular pagos.
 const BACKEND_MODE = "free"; 
 
 // ================================= MULTILENGUAJE (MISIÓN) =================================
@@ -14,7 +15,7 @@ const LANGS = {
         cargas: "Active Shipments",
         documentos: "Upload Documents/Photos",
         alertas: "Generated Alerts by AIPA 🚨",
-        advisory: "Preventive Advisory: SmartCargo Assistant (Virtual Inspector)",
+        advisory: "SmartCargo Consulting (Direct Solutions)", // Nuevo Nombre
         pagos: "Premium Plans and Services",
         riesgo: "General Rejection Risk",
         upload_btn: "Upload and Verify",
@@ -25,7 +26,7 @@ const LANGS = {
         pallet_type: "Pallet Type (wood, plastic, metal):",
         ispm15: "ISPM-15 Verified (true/false):",
         height: "Height (cm):",
-        advisory_desc: "Ask about global regulations (Air ✈️, Maritime 🚢, Ground 🚚). The SmartCargo Assistant will provide the KEY RISK and SOLUTION to prevent holds, fines, and detentions.",
+        advisory_desc: "Ask about regulations, submit photos/writings for **Review, Advisory, and Direct Solutions** so your cargo flows without HOLDS. Serves all links: Client, Forwarder, Trucker, Handler, Airline/Port.",
         legal_disclaimer: "[LEGAL DISCLAIMER] AIPA's advice is PREVENTIVE, not a legal certification. The user is solely responsible for final cargo verification.",
         scope_title: "AIPA Inspection Scope (We Cover 100% of the Cargo):",
         scope_list_1: "Merchandise: DG/HAZMAT, Perishables, Fragile, Oversized.",
@@ -37,7 +38,7 @@ const LANGS = {
         cargas: "Cargas Activas",
         documentos: "Subir Documentos/Fotos",
         alertas: "Alertas Generadas por AIPA 🚨",
-        advisory: "Asesoría Preventiva: Asistente SmartCargo (Inspector Virtual)",
+        advisory: "SmartCargo Consulting (Soluciones Directas)", // Nuevo Nombre
         pagos: "Planes y Servicios Premium",
         riesgo: "Riesgo General de Rechazo",
         upload_btn: "Subir y Verificar",
@@ -48,7 +49,7 @@ const LANGS = {
         pallet_type: "Tipo de Pallet (madera, plastico, metal):",
         ispm15: "¿ISPM-15 Verificado? (true/false):",
         height: "Altura (cm):",
-        advisory_desc: "Pregunta sobre regulaciones (Aéreo ✈️, Marítimo 🚢, Terrestre 🚚). El Asistente SmartCargo te dará el RIESGO y la SOLUCIÓN CLAVE para evitar holds, multas y detenciones.",
+        advisory_desc: "Pregunte por regulaciones, envíe fotos/escritos para **Revisión, Asesoría y Soluciones Directas** para que su carga fluya sin HOLDS. Sirve a toda la cadena: Cliente, Forwarder, Camionero, Handler, Aerolínea/Puerto.",
         legal_disclaimer: "[DISCLAIMER LEGAL] La asesoría de AIPA es PREVENTIVA, no una certificación legal. El usuario es el único responsable de la verificación legal final de la carga.",
         scope_title: "Alcance de la Inspección AIPA (Cubrimos el 100% de la Carga):",
         scope_list_1: "Mercancía: DG/HAZMAT, Perecederos, Frágil, Sobredimensionada.",
@@ -240,7 +241,7 @@ function clearUploadFields() {
     alert('Campos de subida borrados.');
 }
 
-// ================================= ASESORÍA IA (FUNCIONALIDAD MEJORADA) =================================
+// ================================= ASESORÍA IA (SMARTCARGO CONSULTING) =================================
 async function askAssistant() {
     const q = document.getElementById('advisoryQuestion').value.trim();
     if (!q) return;
@@ -251,7 +252,7 @@ async function askAssistant() {
     document.getElementById('advisoryQuestion').value = '';
     
     responseDiv.innerHTML += userQuestion;
-    responseDiv.innerHTML += `<p id="consulta_status" style="color:#004080; font-style: italic;">Consultando al Asistente SmartCargo (Inspector Virtual)... Por favor, espera.</p>`;
+    responseDiv.innerHTML += `<p id="consulta_status" style="color:#004080; font-style: italic;">Consultando a SmartCargo Consulting (Buscando Soluciones Directas)... Por favor, espera.</p>`;
     responseDiv.scrollTop = responseDiv.scrollHeight; 
 
     try {
@@ -265,12 +266,12 @@ async function askAssistant() {
         if (statusElement) statusElement.remove(); 
         
         if (j.error) {
-            responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ ERROR del Asistente SmartCargo: ${j.error}</div>`;
+            responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ ERROR de SmartCargo Consulting: ${j.error}</div>`;
         } else {
             // Estilo para hacer la respuesta más palpable y accionable
             responseDiv.innerHTML += `
                 <div style="margin: 10px 0; padding: 10px; border: 1px solid #0066cc; background-color: #f0f8ff;">
-                    <p style="color: #0066cc; font-weight: bold; margin-bottom: 5px;">🤖 Asistente SmartCargo Responde:</p>
+                    <p style="color: #0066cc; font-weight: bold; margin-bottom: 5px;">🤖 SmartCargo Consulting Responde:</p>
                     <p>${j.data.replace(/\n/g, '<br>')}</p>
                 </div>`;
         }
@@ -278,7 +279,7 @@ async function askAssistant() {
     } catch (e) {
         const statusElement = document.getElementById('consulta_status');
         if (statusElement) statusElement.remove();
-        responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ Error: No se pudo contactar al Asistente SmartCargo. Verifique el backend.</div>`;
+        responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ Error: No se pudo contactar a SmartCargo Consulting. Verifique el backend.</div>`;
     }
     responseDiv.scrollTop = responseDiv.scrollHeight; 
 }
