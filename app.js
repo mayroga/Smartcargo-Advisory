@@ -1,21 +1,71 @@
-import {
-    AWB_MANDATORY_FIELDS,
-    ISPM_15_STANDARD,
-    UNIVERSAL_LABELS
-} from "./cargo_standards.js";
+const BACKEND_URL = "<REPLACE_WITH_YOUR_SMARTCARGO-AIPA_URL>";
 
-import { CORE_LEGAL_DISCLAIMER } from "./legal_warning.js";
+// Modo de pago detectado desde backend
+let BACKEND_MODE = "free"; // por defecto
+async function detectBackendMode(){
+  try{
+    const res = await fetch(`${BACKEND_URL}/mode`);
+    const j = await res.json();
+    BACKEND_MODE = j.mode || "free";
+    renderPaymentButtons();
+  }catch(e){
+    console.error("No se pudo detectar modo backend:", e);
+    renderPaymentButtons(); // usa default
+  }
+}
 
-import { ELEGANT_SERVICE_TIERS } from "./pricing.js";
+// Renderiza botones según modo free o pay
+function renderPaymentButtons(){
+  const subs = [
+    {amount:29, desc:"Basic Monthly"},
+    {amount:59, desc:"Premium Monthly"},
+    {amount:295, desc:"Basic Annual"},
+    {amount:595, desc:"Premium Annual"}
+  ];
+  const perService = [
+    {amount:10, desc:"Upload & Verify Cargo"},
+    {amount:15, desc:"Advanced Simulation"},
+    {amount:12, desc:"Report PDF/Excel"}
+  ];
 
-document.getElementById("app").innerHTML = `
-    <h2>Asistente SmartCargo</h2>
+  const subDiv = document.getElementById("subscriptionButtons");
+  const svcDiv = document.getElementById("serviceButtons");
+  subDiv.innerHTML = "";
+  svcDiv.innerHTML = "";
 
-    <p>${CORE_LEGAL_DISCLAIMER}</p>
+  subs.forEach(p=>{
+    const btn = document.createElement("button");
+    btn.className = `btn ${BACKEND_MODE==="pay"?"btn-primary":"btn-outline-secondary"}`;
+    btn.textContent = `${p.desc} — $${p.amount}`;
+    btn.onclick = ()=>startPayment(p.amount,p.desc);
+    subDiv.appendChild(btn);
+  });
 
-    <h3>Campos AWB Obligatorios</h3>
-    <ul>${AWB_MANDATORY_FIELDS.map(f => `<li>${f.key}: ${f.description}</li>`).join("")}</ul>
+  perService.forEach(p=>{
+    const btn = document.createElement("button");
+    btn.className = `btn btn-sm ${BACKEND_MODE==="pay"?"btn-primary":"btn-outline-secondary"}`;
+    btn.textContent = `$${p.amount} ${p.desc}`;
+    btn.onclick = ()=>startPayment(p.amount,p.desc);
+    svcDiv.appendChild(btn);
+  });
+}
 
-    <h3>Planes Disponibles</h3>
-    <ul>${ELEGANT_SERVICE_TIERS.map(t => `<li>${t.name} – ${t.price}</li>`).join("")}</ul>
-`;
+// Llamada al backend para crear pago
+async function startPayment(amount,desc){
+  if(BACKEND_MODE==="free"){
+    alert(`Simulación gratuita: ${desc}`);
+    return;
+  }
+  try{
+    const fd = new FormData();
+    fd.append("amount", parseInt(amount*100));
+    fd.append("description", desc);
+    const res = await fetch(`${BACKEND_URL}/create-payment`,{method:"POST",body:fd});
+    const j = await res.json();
+    if(j.url) window.location.href = j.url;
+    else alert("Error al iniciar pago");
+  }catch(e){ console.error(e); alert("Error en pago"); }
+}
+
+// Init
+detectBackendMode();
