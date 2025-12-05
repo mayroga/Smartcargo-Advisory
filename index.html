@@ -1,107 +1,119 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartCargo-ADVISORY</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-:root{--brand:#0b4a6f;--accent:#ffb703;}
-body{font-family:Inter,Arial,sans-serif;background:#f3f7fb;color:#0b2135;}
-header{background:var(--brand);color:white;padding:18px 12px;}
-.nav-btn{background:transparent;border:0;color:white;margin-right:8px}
-.panel{display:none;background:white;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(10,20,30,0.06);margin:18px 0}
-.panel.active{display:block}
-#assistantBox{position:fixed;right:18px;bottom:18px;width:340px;z-index:1200}
-#chat{height:240px;overflow:auto;background:white;padding:12px;border-radius:8px;border:1px solid #e6eef6}
-.msg-user{color:#023047;font-weight:600}
-.msg-aipa{color:#0b4a6f}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo-ADVISORY</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+        header { background: #004080; color: white; padding: 1rem; text-align: center; }
+        nav { background: #0066cc; color: white; padding: 0.5rem; display: flex; gap: 1rem; justify-content: center; }
+        nav button { background: transparent; border: none; color: white; cursor: pointer; font-weight: bold; }
+        section { padding: 1rem; display: none; }
+        section.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+        th { background: #eee; }
+        input, textarea, button { padding: 0.5rem; margin: 0.3rem 0; width: 100%; box-sizing: border-box; }
+        form { max-width: 500px; margin: auto; }
+    </style>
 </head>
 <body>
 
-<header class="d-flex align-items-center justify-content-between flex-wrap">
-  <div class="d-flex align-items-center">
-    <img src="https://via.placeholder.com/36" alt="logo" style="margin-right:10px">
-    <div>
-      <h4 style="margin:0">SmartCargo-ADVISORY</h4>
-      <div class="small">Asesoría preventiva para proteger la mercancía del cliente</div>
-    </div>
-  </div>
-  <div class="d-flex align-items-center">
-    <nav>
-      <button class="nav-btn" onclick="showPanel('panelCargas')">Cargas</button>
-      <button class="nav-btn" onclick="showPanel('panelDocs')">Documentos/Fotos</button>
-      <button class="nav-btn" onclick="showPanel('panelAlerts')">Alertas</button>
-      <button class="nav-btn" onclick="showPanel('panelPayments')">Pagos</button>
-      <button class="nav-btn" onclick="showPanel('panelConfig')">Config</button>
-    </nav>
-  </div>
+<header>
+    <h1>SmartCargo-ADVISORY</h1>
+    <p>Asesoría preventiva para proteger la mercancía del cliente</p>
 </header>
 
-<main class="container my-3">
-  <section id="panelCargas" class="panel active">
-    <h5>Cargas activas</h5>
-    <table class="table table-hover">
-      <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Alertas</th><th>Fotos</th><th>Docs</th></tr></thead>
-      <tbody id="tableCargas"></tbody>
+<nav>
+    <button onclick="showSection('cargas')">Cargas</button>
+    <button onclick="showSection('documentos')">Documentos</button>
+    <button onclick="showSection('alertas')">Alertas</button>
+    <button onclick="showSection('pagos')">Pagos</button>
+    <button onclick="showSection('advisory')">Asesoría</button>
+</nav>
+
+<!-- ===================================================== -->
+<!-- SECCIÓN CARGAS -->
+<!-- ===================================================== -->
+<section id="cargas" class="active">
+    <h2>Cargas Activas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Alertas</th>
+            </tr>
+        </thead>
+        <tbody id="cargasTableBody"></tbody>
     </table>
-    <button class="btn btn-primary" onclick="crearCarga()">+ Nueva Carga</button>
-  </section>
+</section>
 
-  <section id="panelDocs" class="panel">
-    <h5>Subir Documento / Foto</h5>
-    <input type="file" id="fileInput">
-    <select id="cargaSelect"></select>
-    <select id="tipoSelect">
-      <option value="foto">Foto</option>
-      <option value="doc">Documento</option>
-    </select>
-    <button class="btn btn-success" onclick="uploadFile()">Subir</button>
-    <div id="uploadResult"></div>
-  </section>
+<!-- ===================================================== -->
+<!-- SECCIÓN DOCUMENTOS / FOTOS -->
+<!-- ===================================================== -->
+<section id="documentos">
+    <h2>Subir Documentos o Fotos</h2>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.png,.jpeg" required>
+        <button type="submit">Subir Archivo</button>
+    </form>
+</section>
 
-  <section id="panelAlerts" class="panel">
-    <h5>Simulación de Riesgos</h5>
-    <select id="simTipo">
-      <option value="Perishables">Perishables</option>
-      <option value="DG">Dangerous Goods</option>
-      <option value="Animals">Live Animals</option>
-      <option value="Fragile">Fragile</option>
-    </select>
-    <input type="number" id="simCount" value="0">
-    <button class="btn btn-warning" onclick="runSimulation()">Ejecutar</button>
-    <div id="simResult"></div>
-  </section>
+<!-- ===================================================== -->
+<!-- SECCIÓN ALERTAS -->
+<!-- ===================================================== -->
+<section id="alertas">
+    <h2>Alertas Generadas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo de Carga</th>
+                <th>Nivel</th>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody id="alertasTableBody"></tbody>
+    </table>
+</section>
 
-  <section id="panelPayments" class="panel">
-    <h5>Pagos / Servicios</h5>
-    <div id="serviceButtons"></div>
-  </section>
+<!-- ===================================================== -->
+<!-- SECCIÓN PAGOS -->
+<!-- ===================================================== -->
+<section id="pagos">
+    <h2>Realizar Pago</h2>
+    <form id="paymentForm">
+        <input type="number" id="paymentAmount" placeholder="Monto (USD)" required>
+        <input type="text" id="paymentDesc" placeholder="Descripción" required>
+        <button type="submit">Pagar</button>
+    </form>
+</section>
 
-  <section id="panelConfig" class="panel">
-    <h5>Configuración</h5>
-    <p>Backend URL: <span id="backendUrlDisplay"></span></p>
-  </section>
-</main>
+<!-- ===================================================== -->
+<!-- SECCIÓN ASESORÍA -->
+<!-- ===================================================== -->
+<section id="advisory">
+    <h2>Asesoría Preventiva</h2>
+    <form id="advisoryForm">
+        <textarea id="advisoryQuestion" placeholder="Escribe tu consulta sobre la carga..." required></textarea>
+        <button type="submit">Consultar</button>
+    </form>
+    <div id="advisoryResponse" style="margin-top:1rem; padding:0.5rem; background:#e0f7fa;"></div>
+</section>
 
-<div id="assistantBox">
-  <div class="card p-2">
-    <h6 style="background:var(--brand);color:white;padding:8px;border-radius:6px;">AIPA Assistant</h6>
-    <div id="chat"></div>
-    <input type="text" id="qInput" placeholder="Pregunta al asistente">
-    <button class="btn btn-warning w-100" onclick="askAssistant()">Preguntar</button>
-  </div>
-</div>
-
-<footer class="my-3 text-center">SmartCargo-ADVISORY • Advising only • © SmartCargo</footer>
-
-<script type="module" src="./app.js"></script>
+<script src="app.js"></script>
 <script>
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+    // Función para cambiar de sección
+    function showSection(sectionId) {
+        document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+    }
 </script>
 </body>
 </html>
