@@ -3,43 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo-ADVISORY</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>SmartCargo-AIPA</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
         header { background: #004080; color: white; padding: 1rem; text-align: center; }
         nav { background: #0066cc; color: white; padding: 0.5rem; display: flex; gap: 1rem; justify-content: center; }
-        nav button { background: transparent; border: none; color: white; cursor: pointer; font-weight: bold; }
+        nav button { background: transparent; border: none; color: white; cursor: pointer; font-weight: bold; padding: 0.5rem 1rem;}
         section { padding: 1rem; display: none; }
         section.active { display: block; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
         th { background: #eee; }
-        input, textarea, button { padding: 0.5rem; margin: 0.3rem 0; width: 100%; box-sizing: border-box; }
-        form { max-width: 500px; margin: auto; }
+        input, textarea, button, select { padding: 0.5rem; margin: 0.3rem 0; width: 100%; box-sizing: border-box; }
+        .btn { border: 1px solid #ccc; cursor: pointer; background-color: white; }
+        .btn-primary { background-color: #0066cc; color: white; border-color: #0066cc; }
+        #advisoryResponse { margin-top: 1rem; padding: 1rem; background: #e0f7fa; border-left: 5px solid #004080; }
+        .lang-switch button { width: auto; margin: 0 5px; }
+        .alert-critical { background-color: #d9534f; color: white; font-weight: bold; }
+        .alert-warning { background-color: #f0ad4e; color: black; }
+        .alert-info { background-color: #5bc0de; color: white; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>SmartCargo-ADVISORY</h1>
-    <p>Asesoría preventiva para proteger la mercancía del cliente</p>
+    <h1>SmartCargo-AIPA 💡</h1>
+    <p id="tagline">Asesoría preventiva virtual para proteger la mercancía del cliente</p>
+    <div class="lang-switch">
+        <button onclick="setLang('en')">English</button>
+        <button onclick="setLang('es')">Español</button>
+    </div>
 </header>
 
 <nav>
-    <button onclick="showSection('cargas')">Cargas</button>
-    <button onclick="showSection('documentos')">Documentos</button>
-    <button onclick="showSection('alertas')">Alertas</button>
-    <button onclick="showSection('pagos')">Pagos</button>
-    <button onclick="showSection('advisory')">Asesoría</button>
+    <button onclick="showPanel('cargas')">Cargas</button>
+    <button onclick="showPanel('documentos')">Documentos/Fotos</button>
+    <button onclick="showPanel('alertas')">Alertas</button>
+    <button onclick="showPanel('advisory')">Asesoría IA</button>
+    <button onclick="showPanel('pagos')">Pagos</button>
 </nav>
 
-<!-- ===================================================== -->
-<!-- SECCIÓN CARGAS -->
-<!-- ===================================================== -->
-<section id="cargas" class="active">
-    <h2>Cargas Activas</h2>
-    <table>
+<section id="cargas" class="active panel">
+    <h2 id="titleCargas">Cargas Activas</h2>
+    <button class="btn btn-primary" onclick="openNewCargaModal()">+ Nueva Carga</button>
+    <table id="tableCargas">
         <thead>
             <tr>
                 <th>ID</th>
@@ -47,73 +54,65 @@
                 <th>Tipo</th>
                 <th>Estado</th>
                 <th>Alertas</th>
+                <th>Acción</th>
             </tr>
         </thead>
-        <tbody id="cargasTableBody"></tbody>
+        <tbody id="cargasTableBody">
+            </tbody>
     </table>
 </section>
 
-<!-- ===================================================== -->
-<!-- SECCIÓN DOCUMENTOS / FOTOS -->
-<!-- ===================================================== -->
-<section id="documentos">
-    <h2>Subir Documentos o Fotos</h2>
+<section id="documentos" class="panel">
+    <h2 id="titleDocumentos">Subir Documentos o Fotos</h2>
+    <p>La verificación de AWB, Packing List, y Fotos de Embalaje se realiza automáticamente.</p>
     <form id="uploadForm">
-        <input type="file" id="fileInput" accept=".pdf,.jpg,.png,.jpeg" required>
-        <button type="submit">Subir Archivo</button>
+        <label for="docCargaId">ID de Carga:</label>
+        <input type="text" id="docCargaId" placeholder="Ej: SC-AIPA-TEST-01" required>
+        <label for="docFile">Archivo:</label>
+        <input type="file" id="docFile" accept=".pdf,.jpg,.png,.jpeg" required>
+        <button type="button" onclick="uploadDoc()" class="btn btn-primary" id="btnUpload">Subir y Verificar</button>
     </form>
 </section>
 
-<!-- ===================================================== -->
-<!-- SECCIÓN ALERTAS -->
-<!-- ===================================================== -->
-<section id="alertas">
-    <h2>Alertas Generadas</h2>
-    <table>
+<section id="alertas" class="panel">
+    <h2 id="titleAlertas">Alertas Generadas por AIPA 🚨</h2>
+    <div id="alertaScore" style="padding: 10px; background: #ffe0b2; margin-bottom: 1rem; font-weight: bold;">
+        Riesgo General de Rechazo: Analizando...
+    </div>
+    <table id="tableAlertas">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Tipo de Carga</th>
+                <th>ID Carga</th>
                 <th>Nivel</th>
                 <th>Mensaje</th>
                 <th>Fecha</th>
             </tr>
         </thead>
-        <tbody id="alertasTableBody"></tbody>
+        <tbody id="alertasTableBody">
+            </tbody>
     </table>
 </section>
 
-<!-- ===================================================== -->
-<!-- SECCIÓN PAGOS -->
-<!-- ===================================================== -->
-<section id="pagos">
-    <h2>Realizar Pago</h2>
-    <form id="paymentForm">
-        <input type="number" id="paymentAmount" placeholder="Monto (USD)" required>
-        <input type="text" id="paymentDesc" placeholder="Descripción" required>
-        <button type="submit">Pagar</button>
+<section id="advisory" class="panel">
+    <h2 id="titleAdvisory">Asesoría Preventiva IA (Powered by Gemini)</h2>
+    <p>Pregunta sobre regulaciones, compatibilidad de carga, o requisitos de embalaje.</p>
+    <form id="advisoryForm">
+        <textarea id="advisoryQuestion" placeholder="Ej: ¿Puedo enviar animales vivos con baterías de litio en el mismo ULD? ¿Cuál es la regulación ISPM-15?" required></textarea>
+        <button type="button" onclick="askAssistant()" class="btn btn-primary" id="btnAdvisory">Consultar</button>
     </form>
+    <div id="advisoryResponse"></div>
 </section>
 
-<!-- ===================================================== -->
-<!-- SECCIÓN ASESORÍA -->
-<!-- ===================================================== -->
-<section id="advisory">
-    <h2>Asesoría Preventiva</h2>
-    <form id="advisoryForm">
-        <textarea id="advisoryQuestion" placeholder="Escribe tu consulta sobre la carga..." required></textarea>
-        <button type="submit">Consultar</button>
-    </form>
-    <div id="advisoryResponse" style="margin-top:1rem; padding:0.5rem; background:#e0f7fa;"></div>
+<section id="pagos" class="panel">
+    <h2 id="titlePagos">Planes y Servicios Premium</h2>
+    <h3>Suscripciones (Acceso Ilimitado)</h3>
+    <div id="subscriptionButtons" style="display: flex; gap: 10px;">
+        </div>
+    <h3>Servicios Individuales (Pago por Uso)</h3>
+    <div id="serviceButtons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+        </div>
 </section>
 
 <script src="app.js"></script>
-<script>
-    // Función para cambiar de sección
-    function showSection(sectionId) {
-        document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
-    }
-</script>
 </body>
 </html>
