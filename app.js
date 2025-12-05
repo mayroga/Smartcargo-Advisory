@@ -1,22 +1,20 @@
 // ================================= CONFIG & IMPORTS =================================
-// NOTA: Para el backend real, reemplaza esta URL con la URL de tu servicio de Render
 const BACKEND_URL = "https://smartcargo-aipa.onrender.com"; 
 
-// Datos Mock para Pagos (Sección 6)
 const ELEGANT_SERVICE_TIERS = [
     { name: "Plan Operador (Mensual)", price: "$99.00" },
     { name: "Plan Corporativo (Anual)", price: "$999.00" }
 ];
 const BACKEND_MODE = "free"; 
 
-// ================================= MULTILENGUAJE (Sección 3.6) =================================
+// ================================= MULTILENGUAJE (MISIÓN) =================================
 const LANGS = {
     en: {
-        tagline: "Virtual preventive advisory to protect client's merchandise",
+        tagline: "Client Merchandise Defense: Air, Maritime, and Ground Compliance Advisory to Prevent Holds and Fines.",
         cargas: "Active Shipments",
         documentos: "Upload Documents/Photos",
         alertas: "Generated Alerts by AIPA 🚨",
-        advisory: "Preventive AI Advisory",
+        advisory: "Preventive Advisory: SmartCargo Assistant (Virtual Inspector)",
         pagos: "Premium Plans and Services",
         riesgo: "General Rejection Risk",
         upload_btn: "Upload and Verify",
@@ -24,16 +22,22 @@ const LANGS = {
         consult_btn: "Consult",
         client_name: "Client Name:",
         cargo_type: "Cargo Type:",
-        pallet_type: "Pallet Type (madera, plastico, metal):",
+        pallet_type: "Pallet Type (wood, plastic, metal):",
         ispm15: "ISPM-15 Verified (true/false):",
-        height: "Height (cm):"
+        height: "Height (cm):",
+        advisory_desc: "Ask about global regulations (Air ✈️, Maritime 🚢, Ground 🚚). The SmartCargo Assistant will provide the KEY RISK and SOLUTION to prevent holds, fines, and detentions.",
+        legal_disclaimer: "[LEGAL DISCLAIMER] AIPA's advice is PREVENTIVE, not a legal certification. The user is solely responsible for final cargo verification.",
+        scope_title: "AIPA Inspection Scope (We Cover 100% of the Cargo):",
+        scope_list_1: "Merchandise: DG/HAZMAT, Perishables, Fragile, Oversized.",
+        scope_list_2: "Packaging: Labeling, Segregation/Consolidation, Pallets (ISPM-15), Temperatures.",
+        scope_list_3: "Process: Documentation (AWB, Weight), Inconsistencies, HOLD / Fine Risk.",
     },
     es: {
-        tagline: "Asesoría preventiva virtual para proteger la mercancía del cliente",
+        tagline: "La Defensa de la Mercancía del Cliente: Asesoría de Cumplimiento Aéreo, Marítimo y Terrestre, para evitar Holds y Multas.",
         cargas: "Cargas Activas",
         documentos: "Subir Documentos/Fotos",
         alertas: "Alertas Generadas por AIPA 🚨",
-        advisory: "Asesoría Preventiva IA",
+        advisory: "Asesoría Preventiva: Asistente SmartCargo (Inspector Virtual)",
         pagos: "Planes y Servicios Premium",
         riesgo: "Riesgo General de Rechazo",
         upload_btn: "Subir y Verificar",
@@ -43,7 +47,13 @@ const LANGS = {
         cargo_type: "Tipo de Carga (DG, Perecederos, Quimicos, Frágil):",
         pallet_type: "Tipo de Pallet (madera, plastico, metal):",
         ispm15: "¿ISPM-15 Verificado? (true/false):",
-        height: "Altura (cm):"
+        height: "Altura (cm):",
+        advisory_desc: "Pregunta sobre regulaciones (Aéreo ✈️, Marítimo 🚢, Terrestre 🚚). El Asistente SmartCargo te dará el RIESGO y la SOLUCIÓN CLAVE para evitar holds, multas y detenciones.",
+        legal_disclaimer: "[DISCLAIMER LEGAL] La asesoría de AIPA es PREVENTIVA, no una certificación legal. El usuario es el único responsable de la verificación legal final de la carga.",
+        scope_title: "Alcance de la Inspección AIPA (Cubrimos el 100% de la Carga):",
+        scope_list_1: "Mercancía: DG/HAZMAT, Perecederos, Frágil, Sobredimensionada.",
+        scope_list_2: "Embalaje: Etiquetado, Separación/Consolidación, Pallets (ISPM-15), Temperaturas.",
+        scope_list_3: "Proceso: Documentación (AWB, Peso), Inconsistencias, Riesgo de HOLD / Multa.",
     }
 };
 let LANG = 'es';
@@ -60,8 +70,20 @@ function setLang(l) {
     document.getElementById('titlePagos').innerText = t.pagos;
     document.getElementById('btnUpload').innerText = t.upload_btn;
     document.getElementById('btnAdvisory').innerText = t.consult_btn;
+    document.getElementById('btnNewCarga').innerText = t.new_carga;
+    // Actualizar Descripción, Disclaimer Legal y Alcance
+    document.getElementById('advisory_desc').innerText = t.advisory_desc;
+    document.getElementById('legal_disclaimer').innerText = t.legal_disclaimer;
     
-    // Recargar cargas y alertas para actualizar el contenido dinámico
+    // Actualizar la lista de Alcance
+    const scopeDiv = document.getElementById('scope_list');
+    if(scopeDiv) {
+        scopeDiv.querySelector('p').innerText = t.scope_title;
+        scopeDiv.querySelector('ul').children[0].innerHTML = `**Mercancía:** ${t.scope_list_1.split(': ')[1]}`;
+        scopeDiv.querySelector('ul').children[1].innerHTML = `**Embalaje:** ${t.scope_list_2.split(': ')[1]}`;
+        scopeDiv.querySelector('ul').children[2].innerHTML = `**Proceso:** ${t.scope_list_3.split(': ')[1]}`;
+    }
+
     refreshCargas();
     refreshAlertas();
 }
@@ -75,7 +97,7 @@ function showPanel(id) {
     }
 }
 
-// ================================= CARGAS (Sección 4) =================================
+// ================================= CARGAS =================================
 async function refreshCargas() {
     try {
         const res = await fetch(`${BACKEND_URL}/cargas`);
@@ -98,7 +120,7 @@ async function refreshCargas() {
                 <td>${client}</td>
                 <td>${tipo}</td>
                 <td>${estado}</td>
-                <td class="${alertClass}">${alertas}</td>
+                <td class="${alertClass}">${alertas} ${alertas > 0 ? '🚨' : '✅'}</td>
                 <td><button class="btn btn-sm btn-outline-secondary" onclick="viewCarga('${id}')">View</button></td>`;
             tbody.appendChild(tr);
         });
@@ -138,7 +160,7 @@ async function createCarga(payload) {
     } catch (e) { console.error(e); alert("Error creando carga."); }
 }
 
-// ================================= ALERTAS Y SIMULACIÓN (Sección 3.4/3.5) =================================
+// ================================= ALERTAS Y SIMULACIÓN (PALPABLE) =================================
 async function refreshAlertas() {
     try {
         const res = await fetch(`${BACKEND_URL}/alertas`);
@@ -149,34 +171,52 @@ async function refreshAlertas() {
         // 1. Cargar alertas
         (Array.isArray(data.alertas) ? data.alertas : []).forEach(a => {
             const tr = document.createElement('tr');
-            let colorClass = a.nivel === 'CRITICAL' ? 'alert-critical' : a.nivel === 'WARNING' ? 'alert-warning' : 'alert-info';
+            let colorClass = '';
+            let emoji = '✅';
+            if (a.nivel === 'CRITICAL') { colorClass = 'alert-critical'; emoji = '❌'; }
+            else if (a.nivel === 'WARNING') { colorClass = 'alert-warning'; emoji = '⚠️'; }
+            else { colorClass = 'alert-info'; emoji = '💡'; }
+
             tr.innerHTML = `
                 <td>${a.carga_id.substring(0, 8)}...</td>
-                <td class="${colorClass}">${a.nivel}</td>
+                <td class="${colorClass}">${a.nivel} ${emoji}</td>
                 <td>${a.mensaje}</td>
                 <td>${new Date(a.fecha).toLocaleDateString()}</td>`;
             tbody.appendChild(tr);
         });
 
         // 2. Ejecutar Simulación de Riesgo General
-        const simRes = await fetch(`${BACKEND_URL}/simulacion/GENERAL/5`); 
+        const simRes = await fetch(`${BACKEND_URL}/simulacion/GENERAL/${data.alertas.length}`); 
         const simData = await simRes.json();
         const scoreDiv = document.getElementById('alertaScore');
         const t = LANGS[LANG];
         
-        scoreDiv.innerText = `${t.riesgo}: ${simData.riesgo_rechazo}`;
-        if (simData.riesgo_rechazo.includes('50%')) {
-            scoreDiv.style.backgroundColor = '#f0ad4e'; // Warning
-        } else if (simData.riesgo_rechazo.includes('80%') || simData.riesgo_rechazo.includes('100%')) {
-            scoreDiv.style.backgroundColor = '#d9534f'; // Critical
-        } else {
-            scoreDiv.style.backgroundColor = '#ffe0b2'; // Info
+        const riskValue = parseInt(simData.riesgo_rechazo.replace('%', ''));
+        
+        // FEEDBACK VISUAL MEJORADO
+        let scoreColor = '#d4edda'; // Bajo Riesgo (Verde)
+        let scoreIcon = '👍';
+        if (riskValue >= 70) {
+            scoreColor = '#f8d7da'; // CRÍTICO (Rojo claro)
+            scoreIcon = '🚨';
+        } else if (riskValue >= 40) {
+            scoreColor = '#fff3cd'; // ALTO RIESGO (Amarillo claro)
+            scoreIcon = '🔔';
         }
+
+        scoreDiv.style.backgroundColor = scoreColor;
+        scoreDiv.style.color = 'black'; // Asegura que el texto siempre sea legible
+        scoreDiv.style.border = `1px solid ${riskValue >= 70 ? '#f5c6cb' : riskValue >= 40 ? '#ffeeba' : '#c3e6cb'}`;
+        
+        scoreDiv.innerHTML = `
+            ${scoreIcon} ${t.riesgo}: <strong>${simData.riesgo_rechazo}</strong> 
+            <p style="margin-top: 5px; font-weight: normal;">Sugerencia AIPA: <em>${simData.sugerencia}</em></p>`;
+
 
     } catch (e) { console.error("Error loading alertas:", e); }
 }
 
-// ================================= DOCUMENTOS (Sección 3.2) =================================
+// ================================= DOCUMENTOS Y LIMPIEZA =================================
 async function uploadDoc() {
     const input = document.getElementById('docFile');
     const cargaId = document.getElementById('docCargaId').value.trim();
@@ -190,35 +230,65 @@ async function uploadDoc() {
         const res = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: fd });
         const j = await res.json();
         alert(`File uploaded: ${j.data?.filename}. Carga ID: ${j.data?.carga_id}. Verificando inconsistencias...`);
-        refreshAlertas(); // Recargar para ver si la subida disparó una alerta (e.g., R005)
+        refreshAlertas(); 
     } catch (e) { console.error(e); alert("Upload failed"); }
 }
 
-// ================================= ASESORÍA IA (Sección 1) =================================
+function clearUploadFields() {
+    document.getElementById('docCargaId').value = '';
+    document.getElementById('docFile').value = ''; 
+    alert('Campos de subida borrados.');
+}
+
+// ================================= ASESORÍA IA (FUNCIONALIDAD MEJORADA) =================================
 async function askAssistant() {
     const q = document.getElementById('advisoryQuestion').value.trim();
     if (!q) return;
     const responseDiv = document.getElementById('advisoryResponse');
-    responseDiv.innerHTML = `<p>Consultando a AIPA...</p>`;
+    
+    const userQuestion = `<p style="font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">👤 Tú preguntas: ${q}</p>`;
+
+    document.getElementById('advisoryQuestion').value = '';
+    
+    responseDiv.innerHTML += userQuestion;
+    responseDiv.innerHTML += `<p id="consulta_status" style="color:#004080; font-style: italic;">Consultando al Asistente SmartCargo (Inspector Virtual)... Por favor, espera.</p>`;
+    responseDiv.scrollTop = responseDiv.scrollHeight; 
 
     try {
         const fd = new FormData();
         fd.append('question', q);
         
-        const res = await fetch(`${BACKEND_URL}/advisory`, {
-            method: 'POST',
-            body: fd
-        });
+        const res = await fetch(`${BACKEND_URL}/advisory`, { method: 'POST', body: fd });
         const j = await res.json();
+        
+        const statusElement = document.getElementById('consulta_status');
+        if (statusElement) statusElement.remove(); 
+        
         if (j.error) {
-            responseDiv.innerHTML = `<p style="color:red;">Error: ${j.error}</p>`;
+            responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ ERROR del Asistente SmartCargo: ${j.error}</div>`;
         } else {
-            responseDiv.innerHTML = `<p><strong>AIPA:</strong> ${j.data.replace(/\n/g, '<br>')}</p>`;
+            // Estilo para hacer la respuesta más palpable y accionable
+            responseDiv.innerHTML += `
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid #0066cc; background-color: #f0f8ff;">
+                    <p style="color: #0066cc; font-weight: bold; margin-bottom: 5px;">🤖 Asistente SmartCargo Responde:</p>
+                    <p>${j.data.replace(/\n/g, '<br>')}</p>
+                </div>`;
         }
+        
     } catch (e) {
-        responseDiv.innerHTML = `<p style="color:red;">Error: No se pudo contactar al asesor AIPA. Verifique el backend.</p>`;
+        const statusElement = document.getElementById('consulta_status');
+        if (statusElement) statusElement.remove();
+        responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ Error: No se pudo contactar al Asistente SmartCargo. Verifique el backend.</div>`;
     }
+    responseDiv.scrollTop = responseDiv.scrollHeight; 
 }
+
+function clearAdvisoryChat() {
+    document.getElementById('advisoryQuestion').value = '';
+    document.getElementById('advisoryResponse').innerHTML = ''; 
+    alert('Historial de asesoría limpiado.');
+}
+
 
 // ================================= PAGOS (MOCK) =================================
 function generatePaymentButtons() {
@@ -227,16 +297,14 @@ function generatePaymentButtons() {
     subsContainer.innerHTML = '';
     servContainer.innerHTML = '';
 
-    // Suscripciones
     ELEGANT_SERVICE_TIERS.forEach(t => {
         const btn = document.createElement('button');
-        btn.className = BACKEND_MODE === "pay" ? "btn btn-primary" : "btn btn-outline-secondary btn";
+        btn.className = BACKEND_MODE === "pay" ? "btn btn-primary" : "btn btn-secondary btn";
         btn.innerText = `${t.name} — ${t.price}`;
         btn.onclick = () => startPayment(parseFloat(t.price.replace(/\$/g, '').replace(/,/g, '')), t.name);
         subsContainer.appendChild(btn);
     });
 
-    // Servicios individuales
     const services = [
         { name: "Upload & Verify Cargo", price: 10 },
         { name: "Advanced Simulation", price: 15 },
@@ -244,7 +312,7 @@ function generatePaymentButtons() {
     ];
     services.forEach(s => {
         const btn = document.createElement('button');
-        btn.className = BACKEND_MODE === "pay" ? "btn btn-sm btn-outline-primary btn" : "btn btn-sm btn";
+        btn.className = BACKEND_MODE === "pay" ? "btn btn-sm btn-primary btn" : "btn btn-sm btn";
         btn.innerText = `$${s.price} ${s.name}`;
         btn.onclick = () => startPayment(s.price, s.name);
         servContainer.appendChild(btn);
@@ -253,7 +321,6 @@ function generatePaymentButtons() {
 
 async function startPayment(amount, desc) {
     if (BACKEND_MODE === "free") { alert(`Pago simulado: ${desc} — Gratis`); return; }
-    // Implementación real de pago iría aquí
     alert(`Iniciando pago por ${desc} ($${amount})`);
 }
 
