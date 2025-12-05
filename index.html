@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -9,13 +9,13 @@
   :root{--brand:#0b4a6f;--accent:#ffb703;}
   body{font-family:Inter,system-ui,Arial,sans-serif;background:#f3f7fb;color:#0b2135;}
   header{background:var(--brand);color:white;padding:18px 12px;}
-  .nav-btn{background:transparent;border:0;color:white;margin-right:8px}
+  .nav-btn{background:transparent;border:0;color:white;margin-right:8px;cursor:pointer;}
   .panel{display:none;background:white;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(10,20,30,0.06);margin:18px 0}
   .panel.active{display:block}
   #assistantBox{position:fixed;right:18px;bottom:18px;width:340px;z-index:1200}
   #chat{height:240px;overflow:auto;background:white;padding:12px;border-radius:8px;border:1px solid #e6eef6}
-  .msg-user{color:#023047;font-weight:600}
-  .msg-aipa{color:#0b4a6f}
+  .msg-user{color:#023047;font-weight:600;margin-bottom:4px;}
+  .msg-aipa{color:#0b4a6f;margin-bottom:4px;}
   .lang-btn{margin-right:6px}
   .alert-dot{display:inline-block;width:10px;height:10px;background:#ff4d4f;border-radius:50%;margin-left:6px}
   footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
@@ -51,8 +51,8 @@
     <div class="d-flex justify-content-between align-items-center mb-2">
       <h5 class="mb-0" id="titleCargas">Cargas activas</h5>
       <div>
-        <button class="btn btn-sm btn-outline-primary" onclick="refreshCargas()">Refresh</button>
-        <button class="btn btn-sm btn-outline-success" onclick="openNewCargaModal()">+ New</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="refreshCargas()">Actualizar</button>
+        <button class="btn btn-sm btn-outline-success" onclick="openNewCargaModal()">+ Nueva</button>
       </div>
     </div>
     <div class="table-responsive">
@@ -68,15 +68,15 @@
   <!-- PANEL: DOCUMENTOS -->
   <section id="panelDocs" class="panel">
     <div class="d-flex justify-content-between">
-      <h5>Documents / Upload</h5>
-      <div class="small-muted">Supported: AWB, Invoice, Packing List, SLI</div>
+      <h5>Documentos / Subir</h5>
+      <div class="small-muted">Soportados: AWB, Invoice, Packing List, SLI</div>
     </div>
     <div class="row g-3 mt-2">
       <div class="col-md-6">
         <input id="docFile" class="form-control" type="file" />
       </div>
       <div class="col-md-6">
-        <button class="btn btn-primary" onclick="uploadDoc()">Upload & Analyze</button>
+        <button class="btn btn-primary" onclick="uploadDoc()">Subir & Analizar</button>
       </div>
     </div>
     <div id="docResult" class="mt-3 small-muted"></div>
@@ -84,7 +84,7 @@
 
   <!-- PANEL: ALERTAS & SIMULATIONS -->
   <section id="panelAlerts" class="panel">
-    <h5>Alerts & Simulations</h5>
+    <h5>Alertas & Simulación</h5>
     <div class="row g-3 mt-2">
       <div class="col-md-4">
         <label class="form-label">Tipo de carga</label>
@@ -96,11 +96,11 @@
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Detected Issues (count)</label>
+        <label class="form-label">Problemas detectados (número)</label>
         <input id="simCount" class="form-control" type="number" min="0" value="0" />
       </div>
       <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-warning w-100" onclick="runSimulation()">Run Simulation</button>
+        <button class="btn btn-warning w-100" onclick="runSimulation()">Ejecutar Simulación</button>
       </div>
     </div>
     <div id="simResult" class="mt-3"></div>
@@ -108,28 +108,24 @@
 
   <!-- PANEL: PAGOS -->
   <section id="panelPayments" class="panel">
-    <h5>Subscriptions & Services</h5>
-    <p class="small-muted">Modo actual: Gratis (free). Pagos serán activados más adelante.</p>
+    <h5>Suscripciones & Servicios</h5>
+    <p class="small-muted">Elige un plan o paga por servicio. Pagos procesados por Stripe.</p>
     <div id="subscriptionButtons" class="d-flex gap-2 flex-wrap mb-3"></div>
     <hr />
-    <h6>Pay per service</h6>
+    <h6>Pagar por servicio</h6>
     <div id="serviceButtons" class="d-flex gap-2 flex-wrap"></div>
   </section>
 
   <!-- PANEL: CONFIG -->
   <section id="panelConfig" class="panel">
-    <h5>Configuration & Language</h5>
+    <h5>Configuración & Idioma</h5>
     <div class="d-flex gap-2 mt-2">
       <button class="btn btn-outline-dark lang-btn" onclick="setLang('en')">English</button>
       <button class="btn btn-outline-dark lang-btn" onclick="setLang('es')">Español</button>
-      <button class="btn btn-outline-dark lang-btn" onclick="setLang('fr')">Français</button>
-      <button class="btn btn-outline-dark lang-btn" onclick="setLang('de')">Deutsch</button>
-      <button class="btn btn-outline-dark lang-btn" onclick="setLang('pt')">Português</button>
-      <button class="btn btn-outline-dark lang-btn" onclick="setLang('zh')">中文</button>
     </div>
     <div class="mt-3 small-muted">
       <p><b>Backend URL:</b> <span id="backendUrlDisplay"></span></p>
-      <p>Tip: configure CORS en backend para este origen en producción.</p>
+      <p>Tip: configura CORS en el backend para permitir este origen.</p>
     </div>
   </section>
 
@@ -142,9 +138,9 @@
       <h6 class="mb-2" style="color:white;background:var(--brand);padding:8px;border-radius:6px">AIPA Assistant</h6>
       <div id="chat"></div>
       <div class="mt-2">
-        <input id="qInput" class="form-control mb-2" placeholder="Ask the assistant">
+        <input id="qInput" class="form-control mb-2" placeholder="Haz una pregunta al asistente">
         <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-warning w-100" onclick="askAssistant()">Ask</button>
+          <button class="btn btn-sm btn-warning w-100" onclick="askAssistant()">Preguntar</button>
         </div>
       </div>
     </div>
@@ -152,9 +148,15 @@
 </div>
 
 <footer class="my-3">
-  <div class="container small-muted">SmartCargo-ADVISORY • Advising only — not a certifier • © SmartCargo</div>
+  <div class="container small-muted">SmartCargo-ADVISORY • Asesoría únicamente — no certifica • © SmartCargo</div>
 </footer>
 
 <script type="module" src="./app.js"></script>
+<script>
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
 </body>
 </html>
