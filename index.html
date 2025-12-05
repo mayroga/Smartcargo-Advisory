@@ -7,7 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 :root{--brand:#0b4a6f;--accent:#ffb703;}
-body{font-family:Inter,system-ui,Arial,sans-serif;background:#f3f7fb;color:#0b2135;}
+body{font-family:Inter,Arial,sans-serif;background:#f3f7fb;color:#0b2135;}
 header{background:var(--brand);color:white;padding:18px 12px;}
 .nav-btn{background:transparent;border:0;color:white;margin-right:8px}
 .panel{display:none;background:white;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(10,20,30,0.06);margin:18px 0}
@@ -16,7 +16,6 @@ header{background:var(--brand);color:white;padding:18px 12px;}
 #chat{height:240px;overflow:auto;background:white;padding:12px;border-radius:8px;border:1px solid #e6eef6}
 .msg-user{color:#023047;font-weight:600}
 .msg-aipa{color:#0b4a6f}
-footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
 </style>
 </head>
 <body>
@@ -32,7 +31,7 @@ footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
   <div class="d-flex align-items-center">
     <nav>
       <button class="nav-btn" onclick="showPanel('panelCargas')">Cargas</button>
-      <button class="nav-btn" onclick="showPanel('panelDocs')">Documentos</button>
+      <button class="nav-btn" onclick="showPanel('panelDocs')">Documentos/Fotos</button>
       <button class="nav-btn" onclick="showPanel('panelAlerts')">Alertas</button>
       <button class="nav-btn" onclick="showPanel('panelPayments')">Pagos</button>
       <button class="nav-btn" onclick="showPanel('panelConfig')">Config</button>
@@ -44,7 +43,7 @@ footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
   <section id="panelCargas" class="panel active">
     <h5>Cargas activas</h5>
     <table class="table table-hover">
-      <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Alertas</th><th>Archivos</th></tr></thead>
+      <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Alertas</th><th>Fotos</th><th>Docs</th></tr></thead>
       <tbody id="tableCargas"></tbody>
     </table>
     <button class="btn btn-primary" onclick="crearCarga()">+ Nueva Carga</button>
@@ -54,6 +53,10 @@ footer{font-size:13px;color:#50657a;padding:10px 0;text-align:center}
     <h5>Subir Documento / Foto</h5>
     <input type="file" id="fileInput">
     <select id="cargaSelect"></select>
+    <select id="tipoSelect">
+      <option value="foto">Foto</option>
+      <option value="doc">Documento</option>
+    </select>
     <button class="btn btn-success" onclick="uploadFile()">Subir</button>
     <div id="uploadResult"></div>
   </section>
