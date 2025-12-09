@@ -1,343 +1,446 @@
-// ================================= CONFIG & IMPORTS =================================
-const BACKEND_URL = "https://smartcargo-aipa.onrender.com"; 
+// Simulación de URL del Backend
+const BACKEND_URL = 'http://localhost:8000';
 
-const ELEGANT_SERVICE_TIERS = [
-    { name: "Plan Operador (Mensual)", price: "$99.00" },
-    { name: "Plan Corporativo (Anual)", price: "$999.00" }
-];
-// Configuración FINAL: FREE
-const BACKEND_MODE = "free"; 
+// Estado de la Aplicación
+let CURRENT_PANEL = 'cargas';
+let LANG = 'en';
 
-// ================================= MULTILENGUAJE (MISIÓN) =================================
+// Objeto de Traducciones (Actualizado con nuevos campos)
 const LANGS = {
-    en: {
-        tagline: "Client Merchandise Defense: Air, Maritime, and Ground Compliance Advisory to Prevent Holds and Fines.",
-        cargas: "Active Shipments",
-        documentos: "Upload Documents/Photos",
-        alertas: "Generated Alerts by AIPA 🚨",
-        advisory: "SmartCargo Consulting (Direct Solutions)", 
-        pagos: "Premium Plans and Services",
-        riesgo: "General Rejection Risk",
-        upload_btn: "Upload and Verify",
-        new_carga: "+ New Shipment",
-        consult_btn: "Consult",
-        client_name: "Client Name:",
-        cargo_type: "Cargo Type:",
-        pallet_type: "Pallet Type (wood, plastic, metal):",
-        ispm15: "ISPM-15 Verified (true/false):",
-        height: "Height (cm):",
-        advisory_desc: "Ask about regulations, submit photos/writings for **Review, Advisory, and Direct Solutions** so your cargo flows without HOLDS. Serves all links: Client, Forwarder, Trucker, Handler, Airline/Port.",
-        legal_disclaimer: "[LEGAL DISCLAIMER] AIPA's advice is PREVENTIVE, not a legal certification. The user is solely responsible for final cargo verification.",
-        scope_title: "AIPA Inspection Scope (We Cover 100% of the Cargo):",
-        scope_list_1: "Merchandise: DG/HAZMAT, Perishables, Fragile, Oversized.",
-        scope_list_2: "Packaging: Labeling, Segregation/Consolidation, Pallets (ISPM-15), Temperatures.",
-        scope_list_3: "Process: Documentation (AWB, Weight), Inconsistencies, HOLD / Fine Risk.",
+    'en': {
+        app_title: "SmartCargo-AIPA: Virtual Preventive Advisor",
+        nav_cargas: "AIPA Operational Console",
+        nav_pagos: "Payment Center",
+        nav_asesoria: "SmartCargo Consulting (AI)",
+        pagos_title: "Payment Center: Select a Service",
+        asesoria_title: "SmartCargo Consulting: Your Preventive Advisor",
+        asesoria_disclaimer: "Disclaimer: SmartCargo-AIPA is a preventive advisor, not a certifying body (TSA, IATA, Forwarder). Our advice is based on documented inputs and is not a substitute for physical carrier inspection.",
+        ask_advisor_button: "Ask the Advisor",
+        
+        // --- Consola Operacional AIPA (Nuevos Campos) ---
+        consola_title: "AIPA OPERATIONAL CONSOLE: Pre-Clearance Check",
+        data_awb_title: "1. AWB & Dimensions Data (Inches Default)",
+        awb_label: "AWB / BOL Number:",
+        content_label: "Cargo Content (Description):",
+        weight_label: "Declared Gross Weight:",
+        dimensions_title: "Dimensions (L x W x H):",
+        length_label: "Length:",
+        width_label: "Width:",
+        height_label: "Height:",
+        
+        physical_check_title: "2. Physical Pre-Checklist (Trucker/Handler)",
+        packing_label: "Packing Integrity Check:",
+        packing_ok: "OK / Undamaged",
+        packing_damaged: "Minor Damage",
+        packing_critical: "CRITICAL (Broken/Leaking)",
+        
+        labeling_label: "All Labels & Marks Applied?",
+        ispm15_label: "ISPM-15 Wooden Pallet Seal Present?",
+        
+        dg_type_label: "Dangerous Goods (DG) Classification:",
+        dg_no: "NO DG / General Cargo",
+        dg_lithium: "Lithium Batteries (UN3481/UN3091)",
+        dg_other: "Other DG Classification",
+        
+        dg_separation_label: "DG Segregation Check (If Applicable):",
+        sep_ok: "OK / Separated",
+        sep_mixed: "CRITICAL / MIXED with Non-DG",
+        
+        weight_match_label: "Weight Match AWB/Scale?",
+        check_yes: "YES",
+        check_no: "NO",
+
+        check_yes_2: "YES",
+        check_no_2: "NO",
+
+        check_yes_3: "YES",
+        check_no_3: "NO",
+
+        submit_button: "SEND TO AIPA CONSULTING & GET RISK SCORE",
+        
+        // Card content
+        risk_score_label: "AIPA RISK SCORE",
+        alerts_label: "PREVENTIVE ALERTS",
+        status_ok: "Pre-Clearance OK",
+        status_hold: "HIGH RISK OF HOLD",
+        
+        // Payments
+        payment_services: {
+            service_1: "Immediate AIPA Score (Free)",
+            service_2: "Detailed Report (PDF/Excel) - $15.00",
+            service_3: "AI Advisory Consultation (3 Qs) - $10.00",
+        }
     },
-    es: {
-        tagline: "La Defensa de la Mercancía del Cliente: Asesoría de Cumplimiento Aéreo, Marítimo y Terrestre, para evitar Holds y Multas.",
-        cargas: "Cargas Activas",
-        documentos: "Subir Documentos/Fotos",
-        alertas: "Alertas Generadas por AIPA 🚨",
-        advisory: "SmartCargo Consulting (Soluciones Directas)",
-        pagos: "Planes y Servicios Premium",
-        riesgo: "Riesgo General de Rechazo",
-        upload_btn: "Subir y Verificar",
-        new_carga: "+ Nueva Carga",
-        consult_btn: "Consultar",
-        client_name: "Nombre del Cliente:",
-        cargo_type: "Tipo de Carga (DG, Perecederos, Quimicos, Frágil):",
-        pallet_type: "Tipo de Pallet (madera, plastico, metal):",
-        ispm15: "¿ISPM-15 Verificado? (true/false):",
-        height: "Altura (cm):",
-        advisory_desc: "Pregunte por regulaciones, envíe fotos/escritos para **Revisión, Asesoría y Soluciones Directas** para que su carga fluya sin HOLDS. Sirve a toda la cadena: Cliente, Forwarder, Camionero, Handler, Aerolínea/Puerto.",
-        legal_disclaimer: "[DISCLAIMER LEGAL] La asesoría de AIPA es PREVENTIVA, no una certificación legal. El usuario es el único responsable de la verificación legal final de la carga.",
-        scope_title: "Alcance de la Inspección AIPA (Cubrimos el 100% de la Carga):",
-        scope_list_1: "Mercancía: DG/HAZMAT, Perecederos, Frágil, Sobredimensionada.",
-        scope_list_2: "Embalaje: Etiquetado, Separación/Consolidación, Pallets (ISPM-15), Temperaturas.",
-        scope_list_3: "Proceso: Documentación (AWB, Peso), Inconsistencias, Riesgo de HOLD / Multa.",
+    'es': {
+        app_title: "SmartCargo-AIPA: Asesor Preventivo Virtual",
+        nav_cargas: "Consola Operacional AIPA",
+        nav_pagos: "Centro de Pagos",
+        nav_asesoria: "SmartCargo Consulting (IA)",
+        pagos_title: "Centro de Pagos: Seleccione un Servicio",
+        asesoria_title: "SmartCargo Consulting: Su Asesor Preventivo",
+        asesoria_disclaimer: "Descargo de Responsabilidad: SmartCargo-AIPA es un asesor preventivo, no un organismo certificador (TSA, IATA, Forwarder). Nuestro asesoramiento se basa en datos documentados y no sustituye la inspección física del transportista.",
+        ask_advisor_button: "Preguntar al Asesor",
+        
+        // --- Consola Operacional AIPA (Nuevos Campos) ---
+        consola_title: "CONSOLA OPERACIONAL AIPA: Verificación Pre-Despacho",
+        data_awb_title: "1. Datos AWB y Dimensiones (Pulgadas por Defecto)",
+        awb_label: "Número AWB / BOL:",
+        content_label: "Contenido de la Carga (Descripción):",
+        weight_label: "Peso Bruto Declarado:",
+        dimensions_title: "Dimensiones (L x An x Al):",
+        length_label: "Largo:",
+        width_label: "Ancho:",
+        height_label: "Altura:",
+
+        physical_check_title: "2. Lista de Verificación Física (Camionero/Handler)",
+        packing_label: "Integridad del Embalaje:",
+        packing_ok: "OK / Sin Daños",
+        packing_damaged: "Daño Menor",
+        packing_critical: "CRÍTICO (Roto/Fuga)",
+
+        labeling_label: "¿Todas las Etiquetas y Marcas Aplicadas?",
+        ispm15_label: "¿Sello ISPM-15 de Pallet de Madera Presente?",
+
+        dg_type_label: "Clasificación de Mercancías Peligrosas (DG):",
+        dg_no: "NO DG / Carga General",
+        dg_lithium: "Baterías de Litio (UN3481/UN3091)",
+        dg_other: "Otra Clasificación DG",
+
+        dg_separation_label: "Verificación de Segregación DG (Si Aplica):",
+        sep_ok: "OK / Separado",
+        sep_mixed: "CRÍTICO / MEZCLADO con No DG",
+        
+        weight_match_label: "¿Coincide el Peso AWB/Báscula?",
+        check_yes: "SÍ",
+        check_no: "NO",
+
+        check_yes_2: "SÍ",
+        check_no_2: "NO",
+
+        check_yes_3: "SÍ",
+        check_no_3: "NO",
+        
+        submit_button: "ENVIAR A AIPA CONSULTING Y OBTENER PUNTAJE DE RIESGO",
+
+        // Card content
+        risk_score_label: "PUNTAJE DE RIESGO AIPA",
+        alerts_label: "ALERTAS PREVENTIVAS",
+        status_ok: "Pre-Despacho OK",
+        status_hold: "ALTO RIESGO DE RETENCIÓN (HOLD)",
+        
+        // Payments
+        payment_services: {
+            service_1: "Puntaje AIPA Inmediato (Gratis)",
+            service_2: "Reporte Detallado (PDF/Excel) - $15.00",
+            service_3: "Consulta Asesor IA (3 Preguntas) - $10.00",
+        }
     }
 };
-let LANG = 'es';
 
-function setLang(l) {
-    LANG = l;
-    const t = LANGS[l];
-    // Actualizar textos principales
-    document.getElementById('tagline').innerText = t.tagline;
-    document.getElementById('titleCargas').innerText = t.cargas;
-    document.getElementById('titleDocumentos').innerText = t.documentos;
-    document.getElementById('titleAlertas').innerText = t.alertas;
-    document.getElementById('titleAdvisory').innerText = t.advisory;
-    document.getElementById('titlePagos').innerText = t.pagos;
-    document.getElementById('btnUpload').innerText = t.upload_btn;
-    document.getElementById('btnAdvisory').innerText = t.consult_btn;
-    document.getElementById('btnNewCarga').innerText = t.new_carga;
-    // Actualizar Descripción, Disclaimer Legal y Alcance
-    document.getElementById('advisory_desc').innerText = t.advisory_desc;
-    document.getElementById('legal_disclaimer').innerText = t.legal_disclaimer;
+/**
+ * Función que cambia el idioma de la interfaz.
+ * @param {string} lang - 'en' o 'es'
+ */
+function setLang(lang) {
+    LANG = lang;
+    const l = LANGS[LANG];
+
+    // Navegación y Títulos
+    document.getElementById('app_title').textContent = l.app_title;
+    document.getElementById('nav_cargas').textContent = l.nav_cargas;
+    document.getElementById('nav_pagos').textContent = l.nav_pagos;
+    document.getElementById('nav_asesoria').textContent = l.nav_asesoria;
+    document.getElementById('pagos_title').textContent = l.pagos_title;
+    document.getElementById('asesoria_title').textContent = l.asesoria_title;
+    document.getElementById('asesoria_disclaimer').textContent = l.asesoria_disclaimer;
+    document.getElementById('ask_advisor_button').textContent = l.ask_advisor_button;
     
-    // Actualizar la lista de Alcance
-    const scopeDiv = document.getElementById('scope_list');
-    if(scopeDiv) {
-        scopeDiv.querySelector('p').innerText = t.scope_title;
-        scopeDiv.querySelector('ul').children[0].innerHTML = `**Mercancía:** ${t.scope_list_1.split(': ')[1]}`;
-        scopeDiv.querySelector('ul').children[1].innerHTML = `**Embalaje:** ${t.scope_list_2.split(': ')[1]}`;
-        scopeDiv.querySelector('ul').children[2].innerHTML = `**Proceso:** ${t.scope_list_3.split(': ')[1]}`;
-    }
+    // Consola Operacional
+    document.getElementById('consola_title').textContent = l.consola_title;
+    document.getElementById('data_awb_title').textContent = l.data_awb_title;
+    document.getElementById('awb_label').textContent = l.awb_label;
+    document.getElementById('content_label').textContent = l.content_label;
+    document.getElementById('weight_label').textContent = l.weight_label;
+    document.getElementById('dimensions_title').textContent = l.dimensions_title;
+    document.getElementById('length_label').textContent = l.length_label;
+    document.getElementById('width_label').textContent = l.width_label;
+    document.getElementById('height_label').textContent = l.height_label;
 
-    refreshCargas();
-    refreshAlertas();
-}
+    document.getElementById('physical_check_title').textContent = l.physical_check_title;
+    document.getElementById('packing_label').textContent = l.packing_label;
+    document.getElementById('packing_ok').textContent = l.packing_ok;
+    document.getElementById('packing_damaged').textContent = l.packing_damaged;
+    document.getElementById('packing_critical').textContent = l.packing_critical;
 
-// ================================= PANEL SWITCH =================================
-function showPanel(id) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if (id === 'alertas') {
-        refreshAlertas();
-    }
-}
+    document.getElementById('labeling_label').textContent = l.labeling_label;
+    document.getElementById('ispm15_label').textContent = l.ispm15_label;
 
-// ================================= CARGAS =================================
-async function refreshCargas() {
-    try {
-        const res = await fetch(`${BACKEND_URL}/cargas`);
-        const data = await res.json();
-        const tbody = document.querySelector('#cargasTableBody');
-        tbody.innerHTML = '';
+    document.getElementById('dg_type_label').textContent = l.dg_type_label;
+    document.getElementById('dg_no').textContent = l.dg_no;
+    document.getElementById('dg_lithium').textContent = l.dg_lithium;
+    document.getElementById('dg_other').textContent = l.dg_other;
 
-        (Array.isArray(data.cargas) ? data.cargas : data.cargas || []).forEach(c => {
-            const id = c.id ?? c[0];
-            const client = c.cliente ?? c.client_name ?? c[1] ?? '';
-            const tipo = c.tipo_carga ?? c.tipo ?? c[2] ?? '';
-            const estado = c.estado ?? c[3] ?? 'En revisión';
-            const alertas = c.alertas ?? c[4] ?? 0;
+    document.getElementById('dg_separation_label').textContent = l.dg_separation_label;
+    document.getElementById('sep_ok').textContent = l.sep_ok;
+    document.getElementById('sep_mixed').textContent = l.sep_mixed;
+    
+    document.getElementById('weight_match_label').textContent = l.weight_match_label;
+    
+    // Opciones de SÍ/NO (Para evitar duplicación de IDs en el HTML)
+    document.querySelectorAll('[id^="check_yes"]').forEach(el => el.textContent = l.check_yes);
+    document.querySelectorAll('[id^="check_no"]').forEach(el => el.textContent = l.check_no);
 
-            const tr = document.createElement('tr');
-            const alertClass = alertas > 0 ? (alertas > 2 ? 'alert-critical' : 'alert-warning') : '';
-            
-            // Añadir onclick a la fila para la interacción de la Carga ID
-            tr.innerHTML = `
-                <td onclick="viewCarga('${id}')">${id.substring(0, 8)}...</td>
-                <td>${client}</td>
-                <td>${tipo}</td>
-                <td>${estado}</td>
-                <td class="${alertClass}">${alertas} ${alertas > 0 ? '🚨' : '✅'}</td>
-                <td><button class="btn btn-sm btn-outline-secondary" onclick="viewCarga('${id}')">View</button></td>`;
-            tbody.appendChild(tr);
-        });
-    } catch (e) { console.error("Error al cargar cargas:", e); document.querySelector('#cargasTableBody').innerHTML = `<tr><td colspan="6" style="color:red;">Error al conectar con el backend.</td></tr>`; }
-}
+    document.getElementById('submit_button').textContent = l.submit_button;
 
-function viewCarga(id) { 
-    // Función de placeholder para dar interacción al ID Carga, ID Alerta y otros campos
-    alert(`Abriendo detalles de la Carga ID: ${id.substring(0, 8)}... (Aquí podría editar, ver documentos, historial, etc.)`); 
-}
-
-function openNewCargaModal() {
-    const t = LANGS[LANG];
-    // Se usan prompts para simular campos de texto sencillos y fáciles de llenar
-    const client = prompt(t.client_name); if (!client) return;
-    const tipo = prompt(t.cargo_type, "Perecederos"); if (!tipo) return;
-    const pallet = prompt(t.pallet_type, "madera");
-    const ispm15 = prompt(t.ispm15, "false");
-    const height = parseInt(prompt(t.height, "150") || '0');
-
-    createCarga({ 
-        cliente: client, 
-        tipo_carga: tipo, 
-        pallet_type: pallet,
-        ispm15_verified: ispm15.toLowerCase() === 'true',
-        height_cm: height
+    // Actualizar botones de pago
+    generatePaymentButtons();
+    // Re-renderizar tarjetas de carga para actualizar traducciones de Risk Score
+    // (Necesitaría la lista de cargas, simularemos el refresh)
+    const cargoList = document.getElementById('cargo_list_display');
+    const cards = cargoList.querySelectorAll('.cargo-card');
+    cards.forEach(card => {
+        // Simple refresh para el Risk Score y alerts. En un sistema real sería más complejo.
+        const scoreElement = card.querySelector('.risk-score');
+        if (scoreElement) {
+            scoreElement.textContent = `${l.risk_score_label}: ${scoreElement.dataset.score}%`;
+        }
+        const titleElement = card.querySelector('h3');
+        const status = titleElement.dataset.status;
+        titleElement.textContent = `${card.dataset.awb} - ${status === 'OK' ? l.status_ok : l.status_hold}`;
     });
+
 }
 
-async function createCarga(payload) {
-    try {
-        const res = await fetch(`${BACKEND_URL}/cargas`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(payload) 
-        });
-        const data = await res.json();
-        alert(`Carga creada ID: ${data.id.substring(0, 8)}... Alertas iniciales: ${data.alertas}`);
-        refreshCargas();
-        refreshAlertas();
-    } catch (e) { console.error(e); alert("Error creando carga."); }
+/**
+ * Muestra el panel seleccionado.
+ * @param {string} panelId - ID del panel a mostrar ('cargas', 'pagos', 'asesoria').
+ */
+function showPanel(panelId) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(`nav_${panelId}`).classList.add('active');
+
+    CURRENT_PANEL = panelId;
 }
 
-// ================================= ALERTAS Y SIMULACIÓN (PALPABLE) =================================
-async function refreshAlertas() {
-    try {
-        const res = await fetch(`${BACKEND_URL}/alertas`);
-        const data = await res.json();
-        const tbody = document.querySelector('#alertasTableBody');
-        tbody.innerHTML = '';
-        
-        // 1. Cargar alertas
-        (Array.isArray(data.alertas) ? data.alertas : []).forEach(a => {
-            const tr = document.createElement('tr');
-            let colorClass = '';
-            let emoji = '✅';
-            if (a.nivel === 'CRITICAL') { colorClass = 'alert-critical'; emoji = '❌'; }
-            else if (a.nivel === 'WARNING') { colorClass = 'alert-warning'; emoji = '⚠️'; }
-            else { colorClass = 'alert-info'; emoji = '💡'; }
-
-            tr.innerHTML = `
-                <td onclick="viewCarga('${a.carga_id}')">${a.carga_id.substring(0, 8)}...</td>
-                <td class="${colorClass}">${a.nivel} ${emoji}</td>
-                <td>${a.mensaje}</td>
-                <td>${new Date(a.fecha).toLocaleDateString()}</td>`;
-            tbody.appendChild(tr);
-        });
-
-        // 2. Ejecutar Simulación de Riesgo General
-        const simRes = await fetch(`${BACKEND_URL}/simulacion/GENERAL/${data.alertas.length}`); 
-        const simData = await simRes.json();
-        const scoreDiv = document.getElementById('alertaScore');
-        const t = LANGS[LANG];
-        
-        const riskValue = parseInt(simData.riesgo_rechazo.replace('%', ''));
-        
-        // FEEDBACK VISUAL MEJORADO
-        let scoreColor = '#d4edda'; // Bajo Riesgo (Verde)
-        let scoreIcon = '👍';
-        if (riskValue >= 70) {
-            scoreColor = '#f8d7da'; // CRÍTICO (Rojo claro)
-            scoreIcon = '🚨';
-        } else if (riskValue >= 40) {
-            scoreColor = '#fff3cd'; // ALTO RIESGO (Amarillo claro)
-            scoreIcon = '🔔';
-        }
-
-        scoreDiv.style.backgroundColor = scoreColor;
-        scoreDiv.style.color = 'black'; 
-        scoreDiv.style.border = `1px solid ${riskValue >= 70 ? '#f5c6cb' : riskValue >= 40 ? '#ffeeba' : '#c3e6cb'}`;
-        
-        scoreDiv.innerHTML = `
-            ${scoreIcon} ${t.riesgo}: <strong>${simData.riesgo_rechazo}</strong> 
-            <p style="margin-top: 5px; font-weight: normal;">Sugerencia AIPA: <em>${simData.sugerencia}</em></p>`;
-
-
-    } catch (e) { console.error("Error loading alertas:", e); }
-}
-
-// ================================= DOCUMENTOS Y LIMPIEZA =================================
-async function uploadDoc() {
-    const input = document.getElementById('docFile');
-    const cargaId = document.getElementById('docCargaId').value.trim();
-    if (!input.files.length || !cargaId) { alert("Choose file and enter Carga ID"); return; }
-    
-    const fd = new FormData();
-    fd.append('file', input.files[0]);
-    fd.append('carga_id', cargaId);
-
-    try {
-        const res = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: fd });
-        const j = await res.json();
-        alert(`File uploaded: ${j.data?.filename}. Carga ID: ${j.data?.carga_id}. Verificando inconsistencias...`);
-        refreshAlertas(); 
-    } catch (e) { console.error(e); alert("Upload failed"); }
-}
-
-function clearUploadFields() {
-    document.getElementById('docCargaId').value = '';
-    document.getElementById('docFile').value = ''; 
-    alert('Campos de subida borrados.');
-}
-
-// ================================= ASESORÍA IA (SMARTCARGO CONSULTING) =================================
-async function askAssistant() {
-    const q = document.getElementById('advisoryQuestion').value.trim();
-    if (!q) return;
-    const responseDiv = document.getElementById('advisoryResponse');
-    
-    const userQuestion = `<p style="font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">👤 Tú preguntas: ${q}</p>`;
-
-    document.getElementById('advisoryQuestion').value = '';
-    
-    responseDiv.innerHTML += userQuestion;
-    responseDiv.innerHTML += `<p id="consulta_status" style="color:#004080; font-style: italic;">Consultando a SmartCargo Consulting (Buscando Soluciones Directas)... Por favor, espera.</p>`;
-    responseDiv.scrollTop = responseDiv.scrollHeight; 
-
-    try {
-        const fd = new FormData();
-        fd.append('question', q);
-        
-        const res = await fetch(`${BACKEND_URL}/advisory`, { method: 'POST', body: fd });
-        const j = await res.json();
-        
-        const statusElement = document.getElementById('consulta_status');
-        if (statusElement) statusElement.remove(); 
-        
-        if (j.error) {
-            responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ ERROR de SmartCargo Consulting: ${j.error}</div>`;
-        } else {
-            // Estilo para hacer la respuesta más palpable y accionable
-            responseDiv.innerHTML += `
-                <div style="margin: 10px 0; padding: 10px; border: 1px solid #0066cc; background-color: #f0f8ff;">
-                    <p style="color: #0066cc; font-weight: bold; margin-bottom: 5px;">🤖 SmartCargo Consulting Responde:</p>
-                    <p>${j.data.replace(/\n/g, '<br>')}</p>
-                </div>`;
-        }
-        
-    } catch (e) {
-        const statusElement = document.getElementById('consulta_status');
-        if (statusElement) statusElement.remove();
-        responseDiv.innerHTML += `<div style="padding: 10px; background-color: #ffe0e0; border-left: 5px solid red; margin: 10px 0;">❌ Error: No se pudo contactar a SmartCargo Consulting. Verifique el backend.</div>`;
+/**
+ * Muestra u oculta la opción de Segregación DG.
+ * @param {string} dgType - Valor del selector de DG.
+ */
+function toggleDGSeparation(dgType) {
+    const separationGroup = document.getElementById('dg_separation_group');
+    if (dgType === 'LITHIUM' || dgType === 'OTHER_DG') {
+        separationGroup.style.display = 'block';
+        document.getElementById('dg_separation').setAttribute('required', 'required');
+    } else {
+        separationGroup.style.display = 'none';
+        document.getElementById('dg_separation').removeAttribute('required');
     }
-    responseDiv.scrollTop = responseDiv.scrollHeight; 
 }
 
-function clearAdvisoryChat() {
-    document.getElementById('advisoryQuestion').value = '';
-    document.getElementById('advisoryResponse').innerHTML = ''; 
-    alert('Historial de asesoría limpiado.');
+/**
+ * Obtiene el factor de conversión para la unidad dada.
+ * @param {string} unit - 'in' (pulgadas) o 'cm'.
+ * @returns {number} Factor para convertir a centímetros.
+ */
+function getUnitConversionFactor(unit) {
+    return unit === 'in' ? 2.54 : 1;
+}
+
+/**
+ * Convierte un valor de la unidad dada a centímetros.
+ * @param {number} value - El valor a convertir.
+ * @param {string} unit - La unidad de origen ('in' o 'cm').
+ * @returns {number} El valor en centímetros.
+ */
+function convertValueToCm(value, unit) {
+    return value * getUnitConversionFactor(unit);
+}
+
+/**
+ * Maneja el envío del nuevo formulario de carga.
+ * @param {Event} event - Evento de envío del formulario.
+ */
+async function submitNewCarga(event) {
+    event.preventDefault();
+
+    const awb = document.getElementById('awb_number').value;
+    const content = document.getElementById('cargo_content').value;
+    
+    // Lectura de Unidades
+    const lengthVal = parseFloat(document.getElementById('length_val').value);
+    const widthVal = parseFloat(document.getElementById('width_val').value);
+    const heightVal = parseFloat(document.getElementById('height_val').value);
+    const unit = document.getElementById('unit_selector').value;
+    
+    const weightVal = parseFloat(document.getElementById('weight_val').value);
+    const weightUnit = document.getElementById('weight_unit_selector').value;
+
+    // Conversión a la unidad base del Backend (asumimos CM y KG como base de validación)
+    const lengthCm = convertValueToCm(lengthVal, unit);
+    const widthCm = convertValueToCm(widthVal, unit);
+    const heightCm = convertValueToCm(heightVal, unit);
+
+    // Lectura de Checkpoints Operacionales
+    const packingIntegrity = document.getElementById('packing_integrity').value;
+    const labelingComplete = document.getElementById('labeling_complete').value;
+    const ispm15Seal = document.getElementById('ispm15_seal').value;
+    const dgType = document.getElementById('dg_type').value;
+    const dgSeparation = (dgType !== 'NO_DG') ? document.getElementById('dg_separation').value : 'NA';
+    const weightMatch = document.getElementById('weight_match').value;
+    
+    // Crear el objeto de carga con todos los datos
+    const cargoData = {
+        awb: awb,
+        content: content,
+        length_cm: parseFloat(lengthCm.toFixed(2)),
+        width_cm: parseFloat(widthCm.toFixed(2)),
+        height_cm: parseFloat(heightCm.toFixed(2)),
+        weight_declared: parseFloat(weightVal.toFixed(2)),
+        weight_unit: weightUnit, 
+        
+        # Checkpoints Operacionales 
+        packing_integrity: packingIntegrity,
+        labeling_complete: labelingComplete,
+        ispm15_seal: ispm15Seal,
+        dg_type: dgType,
+        dg_separation: dgSeparation,
+        weight_match: weightMatch
+    };
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/cargas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cargoData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        generateCargoCard(result);
+        
+        // Limpiar el formulario después del envío exitoso
+        document.querySelector('.operational-console').reset();
+        toggleDGSeparation('NO_DG'); // Resetear la visibilidad de DG separation
+
+    } catch (error) {
+        console.error('Error al enviar la carga:', error);
+        alert(LANG === 'es' ? 'Error al conectar con el servidor de AIPA.' : 'Error connecting to the AIPA server.');
+    }
 }
 
 
-// ================================= PAGOS (MOCK) =================================
+/**
+ * Genera y muestra una tarjeta de carga con el puntaje de riesgo.
+ * @param {object} cargo - Objeto de carga con el resultado del riesgo.
+ */
+function generateCargoCard(cargo) {
+    const cargoList = document.getElementById('cargo_list_display');
+    const l = LANGS[LANG];
+
+    let riskClass;
+    if (cargo.alertaScore <= 30) riskClass = 'risk-low';
+    else if (cargo.alertaScore <= 60) riskClass = 'risk-medium';
+    else riskClass = 'risk-high';
+
+    const status = cargo.alertaScore > 50 ? 'HOLD' : 'OK';
+    const statusText = status === 'OK' ? l.status_ok : l.status_hold;
+
+    let alertsHtml = '';
+    if (cargo.alerts && cargo.alerts.length > 0) {
+        alertsHtml = cargo.alerts.map(a => `<li title="${standards.ALERTS_DB[a].desc}">${standards.ALERTS_DB[a].msg} (R${a})</li>`).join('');
+        alertsHtml = `<p><strong>${l.alerts_label}:</strong></p><ul class="alert-list">${alertsHtml}</ul>`;
+    }
+
+    const cardHtml = `
+        <div class="cargo-card" data-awb="${cargo.awb}" data-status="${status}">
+            <h3 data-status="${status}">${cargo.awb} - ${statusText}</h3>
+            <p><strong>${l.content_label.replace(':', '')}:</strong> ${cargo.content}</p>
+            <p><strong>${l.dimensions_title.replace(':', '')}:</strong> ${cargo.length_cm}x${cargo.width_cm}x${cargo.height_cm} cm</p>
+            <p><strong>${l.weight_label.replace(':', '')}:</strong> ${cargo.weight_declared} ${cargo.weight_unit.toUpperCase()}</p>
+            <p><strong>${l.ispm15_label.replace('?', '')}:</strong> ${cargo.ispm15_seal}</p>
+            <p><strong>${l.dg_type_label.replace(':', '')}:</strong> ${cargo.dg_type}</p>
+            <hr>
+            <p><span class="risk-score ${riskClass}" data-score="${cargo.alertaScore}">${l.risk_score_label}: ${cargo.alertaScore}%</span></p>
+            ${alertsHtml}
+        </div>
+    `;
+
+    cargoList.insertAdjacentHTML('afterbegin', cardHtml);
+}
+
+/**
+ * Genera los botones de pago/servicios.
+ */
 function generatePaymentButtons() {
-    const subsContainer = document.getElementById('subscriptionButtons');
-    const servContainer = document.getElementById('serviceButtons');
-    subsContainer.innerHTML = '';
-    servContainer.innerHTML = '';
+    const container = document.getElementById('payment_buttons_container');
+    const l = LANGS[LANG];
+    container.innerHTML = '';
 
-    ELEGANT_SERVICE_TIERS.forEach(t => {
-        const btn = document.createElement('button');
-        // Se mantiene el color gris para evitar confusión si el modo FREE está activo.
-        btn.className = BACKEND_MODE === "pay" ? "btn btn-primary" : "btn btn-secondary btn"; 
-        btn.innerText = `${t.name} — ${t.price}`;
-        btn.onclick = () => startPayment(parseFloat(t.price.replace(/\$/g, '').replace(/,/g, '')), t.name);
-        subsContainer.appendChild(btn);
-    });
-
-    const services = [
-        { name: "Upload & Verify Cargo", price: 10 },
-        { name: "Advanced Simulation", price: 15 },
-        { name: "Report PDF/Excel", price: 12 }
-    ];
-    services.forEach(s => {
-        const btn = document.createElement('button');
-        btn.className = BACKEND_MODE === "pay" ? "btn btn-sm btn-primary btn" : "btn btn-sm btn";
-        btn.innerText = `$${s.price} ${s.name}`;
-        btn.onclick = () => startPayment(s.price, s.name);
-        servContainer.appendChild(btn);
-    });
-}
-
-async function startPayment(amount, desc) {
-    if (BACKEND_MODE === "free") { 
-        alert(`Pago simulado: ${desc} — Gratis. SmartCargo Consulting está actualmente en modo GRATUITO. Disfrute de los servicios sin costo.`); 
-        return; 
+    for (const [key, value] of Object.entries(l.payment_services)) {
+        const button = document.createElement('button');
+        button.textContent = value;
+        button.onclick = () => alert(LANG === 'es' ? `Servicio "${value}" comprado. Gracias.` : `Service "${value}" purchased. Thank you.`);
+        container.appendChild(button);
     }
-    alert(`Iniciando pago por ${desc} ($${amount})`);
+}
+
+/**
+ * Envía la consulta al Asesor IA.
+ */
+async function getAdvisory() {
+    const query = document.getElementById('advisory_query').value;
+    const responseDiv = document.getElementById('advisory_response');
+    responseDiv.innerHTML = `<p>${LANG === 'es' ? 'Consultando al asesor...' : 'Consulting the advisor...'}</p>`;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/advisory`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: query })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        const advisorResponse = result.response;
+        
+        // Aplicar la regla de 4 líneas: separar el primer párrafo del resto
+        const paragraphs = advisorResponse.split('\n\n');
+        const mainAdvice = paragraphs[0];
+        const context = paragraphs.slice(1).join('<br>');
+        
+        let finalHtml = `<p><strong>SmartCargo Consulting:</strong></p>`;
+        finalHtml += `<p style="font-size:1.1em; color:#003366;">${mainAdvice}</p>`;
+        
+        if (context) {
+            finalHtml += `<p style="font-size:0.9em; border-left: 3px solid #ccc; padding-left: 10px;">${context}</p>`;
+        }
+        
+        responseDiv.innerHTML = finalHtml;
+
+    } catch (error) {
+        console.error('Error al obtener la asesoría:', error);
+        responseDiv.innerHTML = `<p style="color:red;">${LANG === 'es' ? 'Error al contactar con el Asesor IA.' : 'Error contacting the AI Advisor.'}</p>`;
+    }
 }
 
 
-// ================================= INIT =================================
+// Inicialización de la aplicación
 (function () {
-    setLang('es');
+    // Establecer el idioma por defecto a Inglés (en) como se solicitó
+    setLang('en'); 
     showPanel('cargas'); 
     generatePaymentButtons();
+    // Inicializar la visibilidad de DG separation
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleDGSeparation(document.getElementById('dg_type').value);
+    });
 })();
