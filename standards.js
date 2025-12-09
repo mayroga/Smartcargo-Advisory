@@ -1,11 +1,12 @@
 // ==============================================================================
-// SMARTCARGO-ADVISORY — CONSTANTES OFICIALES (VERSIÓN FINAL)
+// SMARTCARGO-ADVISORY — CONSTANTES OFICIALES (VERSIÓN FINAL Y CORREGIDA)
 // ESTE ES EL ÚNICO ARCHIVO QUE NECESITA EL FRONTEND
 // ==============================================================================
 
 // ------------------------------------------------------------------------------
 // CONSTANTES DE SERVICIO (USADAS PARA PRECIOS Y DESCRIPCIONES)
 // ------------------------------------------------------------------------------
+
 export const AWB_MANDATORY_FIELDS = [
     { key: "SHIPPER", description: "Dueño real de la mercancía (responsable legal)" },
     { key: "CONSIGNEE", description: "Destinatario final" },
@@ -108,17 +109,19 @@ export const OPTIONAL_ADDONS_DISPLAY = [
 
 
 // ------------------------------------------------------------------------------
-// 🚨 CORRECCIÓN CRÍTICA: DATABASE DE ALERTAS PARA LA CONSOLA OPERACIONAL
-// ESTE OBJETO ES NECESARIO para que app.js pueda mostrar los mensajes (R001, R002, etc.)
+// 🚨 DATABASE DE ALERTAS PARA LA CONSOLA OPERACIONAL
+// ¡CLAVE! Se asigna a 'window.standards' para asegurar la ACCESIBILIDAD GLOBAL 
+// en app.js y evitar errores de 'is not defined'.
 // ------------------------------------------------------------------------------
-const standards = {
-    ALERTS_DB: {
-        "R001": { "msg": "Pallet de madera sin sello ISPM-15.", "desc": "Alto riesgo fitosanitario. Necesita tratamiento." },
-        "R002": { "msg": "Altura excede límite de ULD estándar (180cm).", "desc": "Riesgo de rechazo por sobredimensión." },
-        "R003": { "msg": "Embalaje CRÍTICO (Roto/Fuga).", "desc": "Violación TSA/IATA. Rechazo inmediato en rampa." },
-        "R004": { "msg": "Etiquetas DG/Frágil Faltantes.", "desc": "Incumplimiento de placarding (TSA/IATA)." },
-        "R005": { "msg": "Segregación DG CRÍTICA (Mezcla con NO DG).", "desc": "Peligro de incompatibilidad química/incendio." },
-        "R006": { "msg": "Discrepancia de Peso AWB/Físico.", "desc": "Alto riesgo de HOLD y re-facturación." },
-        "R007": { "msg": "Contenido DG requiere documento Shipper's Declaration.", "desc": "Documento obligatorio DG faltante." }
-    }
+
+window.standards = { 
+    ALERTS_DB: {
+        "R001": { msg: "Pallet de madera sin sello ISPM-15.", desc: "Alto riesgo fitosanitario. Necesita tratamiento." },
+        "R002": { msg: "Altura excede límite de ULD estándar (180cm).", desc: "Riesgo de rechazo por sobredimensión." },
+        "R003": { msg: "Embalaje CRÍTICO (Roto/Fuga).", desc: "Violación TSA/IATA. Rechazo inmediato en rampa." },
+        "R004": { msg: "Etiquetas DG/Frágil Faltantes.", desc: "Incumplimiento de placarding (TSA/IATA)." },
+        "R005": { msg: "Segregación DG CRÍTICA.", desc: "Peligro de incompatibilidad química/incendio." },
+        "R006": { msg: "Discrepancia de Peso AWB/Físico.", desc: "Alto riesgo de HOLD y re-facturación." },
+        "R007": { msg: "DG requiere Shipper's Declaration.", desc: "Documento obligatorio DG faltante." }
+    }
 };
