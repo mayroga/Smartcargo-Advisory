@@ -301,7 +301,7 @@ async function submitNewCarga(event) {
         weight_declared: parseFloat(weightVal.toFixed(2)),
         weight_unit: weightUnit, 
         
-        # Checkpoints Operacionales 
+        // Checkpoints Operacionales 
         packing_integrity: packingIntegrity,
         labeling_complete: labelingComplete,
         ispm15_seal: ispm15Seal,
@@ -352,6 +352,7 @@ function generateCargoCard(cargo) {
     const statusText = status === 'OK' ? l.status_ok : l.status_hold;
 
     let alertsHtml = '';
+    // NOTA: Se asume que el backend devuelve un array de IDs de alerta (ej: [R002, R004])
     if (cargo.alerts && cargo.alerts.length > 0) {
         alertsHtml = cargo.alerts.map(a => `<li title="${standards.ALERTS_DB[a].desc}">${standards.ALERTS_DB[a].msg} (R${a})</li>`).join('');
         alertsHtml = `<p><strong>${l.alerts_label}:</strong></p><ul class="alert-list">${alertsHtml}</ul>`;
@@ -375,19 +376,50 @@ function generateCargoCard(cargo) {
 }
 
 /**
- * Genera los botones de pago/servicios.
+ * Genera los botones de pago/servicios y los enlaza directamente a los Payment Links de Stripe.
  */
 function generatePaymentButtons() {
     const container = document.getElementById('payment_buttons_container');
     const l = LANGS[LANG];
     container.innerHTML = '';
 
-    for (const [key, value] of Object.entries(l.payment_services)) {
+    // Mapeo de servicios a los enlaces reales de Stripe proporcionados
+    const servicesMap = [
+        { 
+            desc: l.payment_services.service_1, 
+            url: null, // Gratuito, no requiere link de pago
+            type: 'free' 
+        },
+        { 
+            desc: l.payment_services.service_2, // Reporte Detallado
+            url: "https://buy.stripe.com/6oUcN49kbcu77sXbTJ7Vm0e", // SmartCargo – Basic Inspection
+            type: 'paid' 
+        },
+        { 
+            desc: l.payment_services.service_3, // Consulta Asesor IA
+            url: "https://buy.stripe.com/fZu6oGbsj1PtaF9aPF7Vm0f", // SmartCargo – Advanced Inspection
+            type: 'paid' 
+        }
+    ];
+
+    servicesMap.forEach(service => {
         const button = document.createElement('button');
-        button.textContent = value;
-        button.onclick = () => alert(LANG === 'es' ? `Servicio "${value}" comprado. Gracias.` : `Service "${value}" purchased. Thank you.`);
+        button.textContent = service.desc;
+        
+        if (service.type === 'free') {
+            // El servicio gratuito solo muestra una alerta (no hay redirección)
+            button.onclick = () => alert(LANG === 'es' ? 'El servicio de Puntaje AIPA es gratuito e instantáneo.' : 'The AIPA Score service is free and instant.');
+        } else {
+            // Los servicios de pago redirigen directamente al link de Stripe
+            button.onclick = () => {
+                // Mensaje de confirmación antes de salir de la aplicación
+                alert(LANG === 'es' ? 'Será redirigido a la pasarela de pago para completar la compra.' : 'You will be redirected to the payment gateway to complete the purchase.');
+                window.location.href = service.url;
+            };
+        }
+        
         container.appendChild(button);
-    }
+    });
 }
 
 /**
@@ -410,7 +442,7 @@ async function getAdvisory() {
         }
 
         const result = await response.json();
-        const advisorResponse = result.response;
+        const advisorResponse = result.data; // Asumiendo que el campo es 'data' del backend
         
         // Aplicar la regla de 4 líneas: separar el primer párrafo del resto
         const paragraphs = advisorResponse.split('\n\n');
@@ -441,6 +473,9 @@ async function getAdvisory() {
     generatePaymentButtons();
     // Inicializar la visibilidad de DG separation
     document.addEventListener('DOMContentLoaded', () => {
-        toggleDGSeparation(document.getElementById('dg_type').value);
+        const dgTypeElement = document.getElementById('dg_type');
+        if (dgTypeElement) {
+            toggleDGSeparation(dgTypeElement.value);
+        }
     });
 })();
