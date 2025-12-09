@@ -1,134 +1,187 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartCargo-AIPA</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
-        header { background: #004080; color: white; padding: 1rem; text-align: center; }
-        nav { background: #0066cc; color: white; padding: 0.5rem; display: flex; gap: 1rem; justify-content: center; }
-        nav button { background: transparent; border: none; color: white; cursor: pointer; font-weight: bold; padding: 0.5rem 1rem;}
-        section { padding: 1rem; display: none; }
+        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+        header { background-color: #003366; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 24px; }
+        .lang-switch button { background-color: #0056b3; color: white; border: none; padding: 8px 15px; cursor: pointer; margin-left: 10px; border-radius: 4px; transition: background-color 0.3s; }
+        .lang-switch button:hover { background-color: #007bff; }
+        main { padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav button { background-color: #e9ecef; border: 1px solid #ccc; padding: 10px 15px; cursor: pointer; margin-right: 10px; border-radius: 4px; transition: background-color 0.3s; }
+        nav button.active { background-color: #007bff; color: white; border-color: #007bff; }
+        section { display: none; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         section.active { display: block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
-        th { background: #eee; }
-        input, textarea, button, select { padding: 0.5rem; margin: 0.3rem 0; width: 100%; box-sizing: border-box; }
-        .btn { border: 1px solid #ccc; cursor: pointer; background-color: white; }
-        .btn-primary { background-color: #0066cc; color: white; border-color: #0066cc; }
-        .lang-switch button { width: auto; margin: 0 5px; }
-        /* Clases de Alerta VISUALES y PALPABLES */
-        .alert-critical { background-color: #d9534f; color: white; font-weight: bold; }
-        .alert-warning { background-color: #f0ad4e; color: black; }
-        .alert-info { background-color: #5bc0de; color: white; }
-        /* Estilo para la respuesta del Asistente */
-        #advisoryResponse { max-height: 400px; overflow-y: auto; background: #f0f8ff; padding: 10px; border: 1px solid #0066cc; }
+        .cargo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .cargo-card { border: 1px solid #ddd; padding: 15px; border-radius: 6px; }
+        .cargo-card h3 { margin-top: 0; color: #003366; }
+        .risk-score { font-size: 1.2em; font-weight: bold; padding: 5px 10px; border-radius: 4px; display: inline-block; }
+        .risk-low { background-color: #d4edda; color: #155724; }
+        .risk-medium { background-color: #fff3cd; color: #856404; }
+        .risk-high { background-color: #f8d7da; color: #721c24; }
+        .alert-list { list-style: none; padding: 0; margin-top: 10px; }
+        .alert-list li { background-color: #f8d7da; color: #721c24; padding: 5px; margin-bottom: 5px; border-radius: 3px; }
+
+        /* Estilos específicos de la Consola Operacional */
+        .operational-console { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .operational-console h2 { grid-column: 1 / -1; color: #003366; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .unit-select-group { display: flex; align-items: center; }
+        .unit-select-group input { flex-grow: 1; }
+        .unit-select-group select { width: 70px; margin-left: 10px; }
+        .submit-button { grid-column: 1 / -1; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.1em; }
+        .submit-button:hover { background-color: #218838; }
+        .col-left, .col-right { padding: 10px; }
+        .col-left { border-right: 1px solid #eee; }
     </style>
+    <script src="standards.js"></script>
 </head>
 <body>
-
-<header>
-    <h1>SmartCargo-AIPA 💡</h1>
-    <p id="tagline" style="font-style: italic; font-weight: bold;">La Defensa de la Mercancía del Cliente: Asesoría de Cumplimiento Aéreo, Marítimo y Terrestre, para evitar Holds y Multas.</p>
-    <div class="lang-switch">
-        <button onclick="setLang('en')">English</button>
-        <button onclick="setLang('es')">Español</button>
-    </div>
-</header>
-
-<nav>
-    <button onclick="showPanel('cargas')">Cargas</button>
-    <button onclick="showPanel('documentos')">Documentos/Fotos</button>
-    <button onclick="showPanel('alertas')">Alertas</button>
-    <button onclick="showPanel('advisory')">Asesoría IA</button>
-    <button onclick="showPanel('pagos')">Pagos</button>
-</nav>
-
-<section id="cargas" class="active panel">
-    <h2 id="titleCargas">Cargas Activas</h2>
-    <button class="btn btn-primary" onclick="openNewCargaModal()" id="btnNewCarga">+ Nueva Carga</button>
-    <table id="tableCargas">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-                <th>Alertas</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody id="cargasTableBody"></tbody>
-    </table>
-</section>
-
-<section id="documentos" class="panel">
-    <h2 id="titleDocumentos">Subir Documentos o Fotos</h2>
-    <p>La verificación de AWB, Packing List, y Fotos de Embalaje se realiza automáticamente. **Asegúrese de incluir el ID de Carga.**</p>
-    <form id="uploadForm">
-        <label for="docCargaId">ID de Carga:</label>
-        <input type="text" id="docCargaId" placeholder="Ej: SC-AIPA-TEST-01" required>
-        <label for="docFile">Archivo:</label>
-        <input type="file" id="docFile" accept=".pdf,.jpg,.png,.jpeg" required>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="uploadDoc()" class="btn btn-primary" id="btnUpload" style="flex-grow: 1;">Subir y Verificar</button>
-            <button type="button" onclick="clearUploadFields()" class="btn">Borrar Campos</button>
+    <header>
+        <h1 id="app_title">SmartCargo-AIPA</h1>
+        <div class="lang-switch">
+            <button onclick="setLang('en')">English</button>
+            <button onclick="setLang('es')">Español</button>
         </div>
-    </form>
-</section>
+    </header>
 
-<section id="alertas" class="panel">
-    <h2 id="titleAlertas">Alertas Generadas por AIPA 🚨</h2>
-    <div id="alertaScore" style="padding: 15px; margin-bottom: 1rem; font-weight: bold; border-radius: 5px;">
-        Riesgo General de Rechazo: Analizando...
-    </div>
-    <table id="tableAlertas">
-        <thead>
-            <tr>
-                <th>ID Carga</th>
-                <th>Nivel</th>
-                <th>Mensaje</th>
-                <th>Fecha</th>
-            </tr>
-        </thead>
-        <tbody id="alertasTableBody"></tbody>
-    </table>
-</section>
+    <main>
+        <nav>
+            <button id="nav_cargas" onclick="showPanel('cargas')" class="active"></button>
+            <button id="nav_pagos" onclick="showPanel('pagos')"></button>
+            <button id="nav_asesoria" onclick="showPanel('asesoria')"></button>
+        </nav>
 
-<section id="advisory" class="panel">
-    <h2 id="titleAdvisory">Asesoría Directa: SmartCargo Consulting (Soluciones Rápidas)</h2>
-    <p id="advisory_desc">Pregunte por regulaciones, envíe fotos/escritos para **Revisión, Asesoría y Soluciones Directas** para que su carga fluya sin HOLDS. Sirve a toda la cadena: Cliente, Forwarder, Camionero, Handler, Aerolínea/Puerto.</p>
-    
-    <div id="scope_list" style="background: #e0f7fa; padding: 10px; border-left: 5px solid #0066cc; margin-bottom: 10px;">
-        <p style="font-weight: bold; margin-bottom: 5px;">Alcance de la Inspección AIPA (Cubrimos el 100% de la Carga):</p>
-        <ul>
-            <li>**Mercancía:** DG/HAZMAT, Perecederos, Frágil, Sobredimensionada.</li>
-            <li>**Embalaje:** Etiquetado, Separación/Consolidación, Pallets (ISPM-15), Temperaturas.</li>
-            <li>**Proceso:** Documentación (AWB, Peso), Inconsistencias, Riesgo de HOLD / Multa.</li>
-        </ul>
-    </div>
+        <section id="cargas" class="active">
+            <form class="operational-console" onsubmit="submitNewCarga(event)">
+                <h2 id="consola_title"></h2>
 
-    <p id="legal_disclaimer" style="color:red; font-size: 0.8em; font-weight: bold; padding: 5px; border: 1px dashed red;">[DISCLAIMER LEGAL] La asesoría de AIPA es PREVENTIVA, no una certificación legal. El usuario es el único responsable de la verificación legal final de la carga.</p>
-    <form id="advisoryForm">
-        <textarea id="advisoryQuestion" placeholder="Ej: ¿Puedo enviar animales vivos con baterías de litio en el mismo ULD? ¿Cuál es la regulación ISPM-15?" required></textarea>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="askAssistant()" class="btn btn-primary" id="btnAdvisory" style="flex-grow: 1;">Consultar</button>
-            <button type="button" onclick="clearAdvisoryChat()" class="btn" style="background-color: #f44336; color: white;">Limpiar Chat</button>
-        </div>
-    </form>
-    <h3 style="margin-top: 20px; border-bottom: 2px solid #0066cc;">Historial / Respuesta del Asistente</h3>
-    <div id="advisoryResponse"></div>
-</section>
+                <div class="col-left">
+                    <h3 id="data_awb_title"></h3>
+                    <div class="input-group">
+                        <label for="awb_number" id="awb_label"></label>
+                        <input type="text" id="awb_number" required>
+                    </div>
 
-<section id="pagos" class="panel">
-    <h2 id="titlePagos">Planes y Servicios Premium</h2>
-    <h3>Suscripciones (Acceso Ilimitado)</h3>
-    <div id="subscriptionButtons" style="display: flex; gap: 10px;"></div>
-    <h3>Servicios Individuales (Pago por Uso)</h3>
-    <div id="serviceButtons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
-</section>
+                    <div class="input-group">
+                        <label for="cargo_content" id="content_label"></label>
+                        <input type="text" id="cargo_content" required>
+                    </div>
 
-<script src="app.js"></script>
+                    <div class="input-group">
+                        <label for="weight_val" id="weight_label"></label>
+                        <div class="unit-select-group">
+                            <input type="number" id="weight_val" step="0.01" required>
+                            <select id="weight_unit_selector">
+                                <option value="kg">kg</option>
+                                <option value="lb">lb</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h4 id="dimensions_title"></h4>
+                    <div class="input-group">
+                        <label for="length_val" id="length_label"></label>
+                        <div class="unit-select-group">
+                            <input type="number" id="length_val" step="0.01" required>
+                            <select id="unit_selector">
+                                <option value="in">in</option>
+                                <option value="cm">cm</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="width_val" id="width_label"></label>
+                        <input type="number" id="width_val" step="0.01" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="height_val" id="height_label"></label>
+                        <input type="number" id="height_val" step="0.01" required>
+                    </div>
+
+                </div>
+
+                <div class="col-right">
+                    <h3 id="physical_check_title"></h3>
+
+                    <div class="input-group">
+                        <label for="packing_integrity" id="packing_label"></label>
+                        <select id="packing_integrity" required>
+                            <option value="OK" id="packing_ok"></option>
+                            <option value="DAMAGED" id="packing_damaged"></option>
+                            <option value="CRITICAL" id="packing_critical"></option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="labeling_complete" id="labeling_label"></label>
+                        <select id="labeling_complete" required>
+                            <option value="YES" id="check_yes"></option>
+                            <option value="NO" id="check_no"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="ispm15_seal" id="ispm15_label"></label>
+                        <select id="ispm15_seal" required>
+                            <option value="YES" id="check_yes_2"></option>
+                            <option value="NO" id="check_no_2"></option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="dg_type" id="dg_type_label"></label>
+                        <select id="dg_type" required onchange="toggleDGSeparation(this.value)">
+                            <option value="NO_DG" id="dg_no"></option>
+                            <option value="LITHIUM" id="dg_lithium"></option>
+                            <option value="OTHER_DG" id="dg_other"></option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" id="dg_separation_group" style="display:none;">
+                        <label for="dg_separation" id="dg_separation_label"></label>
+                        <select id="dg_separation">
+                            <option value="OK" id="sep_ok"></option>
+                            <option value="MIXED" id="sep_mixed"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="weight_match" id="weight_match_label"></label>
+                        <select id="weight_match" required>
+                            <option value="YES" id="check_yes_3"></option>
+                            <option value="NO" id="check_no_3"></option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="submit-button" id="submit_button"></button>
+            </form>
+
+            <div class="cargo-list" id="cargo_list_display">
+                </div>
+        </section>
+
+        <section id="pagos">
+            <h2 id="pagos_title"></h2>
+            <div id="payment_buttons_container"></div>
+        </section>
+
+        <section id="asesoria">
+            <h2 id="asesoria_title"></h2>
+            <p id="asesoria_disclaimer"></p>
+            <textarea id="advisory_query" rows="4" style="width: 100%; margin-bottom: 10px;"></textarea>
+            <button id="ask_advisor_button" onclick="getAdvisory()"></button>
+            <div id="advisory_response"></div>
+        </section>
+    </main>
+    <script src="app.js"></script>
 </body>
 </html>
