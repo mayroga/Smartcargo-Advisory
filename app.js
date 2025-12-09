@@ -1,5 +1,5 @@
 // Simulación de URL del Backend
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL ='https://smartcargo-aipa.onrender.com';
 
 // Estado de la Aplicación
 let CURRENT_PANEL = 'cargas';
