@@ -112,13 +112,13 @@ export const OPTIONAL_ADDONS_DISPLAY = [
 // ESTE OBJETO ES NECESARIO para que app.js pueda mostrar los mensajes (R001, R002, etc.)
 // ------------------------------------------------------------------------------
 const standards = {
-    ALERTS_DB: {
-        "R001": { "msg": "Pallet de madera sin sello ISPM-15.", "desc": "Alto riesgo fitosanitario. Necesita tratamiento." },
-        "R002": { "msg": "Altura excede límite de ULD estándar (180cm).", "desc": "Riesgo de rechazo por sobredimensión." },
-        "R003": { "msg": "Embalaje CRÍTICO (Roto/Fuga).", "desc": "Violación TSA/IATA. Rechazo inmediato en rampa." },
-        "R004": { "msg": "Etiquetas DG/Frágil Faltantes.", "desc": "Incumplimiento de placarding (TSA/IATA)." },
-        "R005": { "msg": "Segregación DG CRÍTICA (Mezcla con NO DG).", "desc": "Peligro de incompatibilidad química/incendio." },
-        "R006": { "msg": "Discrepancia de Peso AWB/Físico.", "desc": "Alto riesgo de HOLD y re-facturación." },
-        "R007": { "msg": "Contenido DG requiere documento Shipper's Declaration.", "desc": "Documento obligatorio DG faltante." }
-    }
+    ALERTS_DB: {
+        "R001": { "msg": "Pallet de madera sin sello ISPM-15.", "desc": "Alto riesgo fitosanitario. Necesita tratamiento." },
+        "R002": { "msg": "Altura excede límite de ULD estándar (180cm).", "desc": "Riesgo de rechazo por sobredimensión." },
+        "R003": { "msg": "Embalaje CRÍTICO (Roto/Fuga).", "desc": "Violación TSA/IATA. Rechazo inmediato en rampa." },
+        "R004": { "msg": "Etiquetas DG/Frágil Faltantes.", "desc": "Incumplimiento de placarding (TSA/IATA)." },
+        "R005": { "msg": "Segregación DG CRÍTICA (Mezcla con NO DG).", "desc": "Peligro de incompatibilidad química/incendio." },
+        "R006": { "msg": "Discrepancia de Peso AWB/Físico.", "desc": "Alto riesgo de HOLD y re-facturación." },
+        "R007": { "msg": "Contenido DG requiere documento Shipper's Declaration.", "desc": "Documento obligatorio DG faltante." }
+    }
 };
