@@ -5,7 +5,7 @@ const BACKEND_URL = 'http://localhost:8000';
 let CURRENT_PANEL = 'cargas';
 let LANG = 'en';
 
-// Objeto de Traducciones (Actualizado con nuevos campos)
+// Objeto de Traducciones 
 const LANGS = {
     'en': {
         app_title: "SmartCargo-AIPA: Virtual Preventive Advisor",
@@ -17,7 +17,7 @@ const LANGS = {
         asesoria_disclaimer: "Disclaimer: SmartCargo-AIPA is a preventive advisor, not a certifying body (TSA, IATA, Forwarder). Our advice is based on documented inputs and is not a substitute for physical carrier inspection.",
         ask_advisor_button: "Ask the Advisor",
         
-        // --- Consola Operacional AIPA (Nuevos Campos) ---
+        // --- Consola Operacional AIPA ---
         consola_title: "AIPA OPERATIONAL CONSOLE: Pre-Clearance Check",
         data_awb_title: "1. AWB & Dimensions Data (Inches Default)",
         awb_label: "AWB / BOL Number:",
@@ -81,7 +81,7 @@ const LANGS = {
         asesoria_disclaimer: "Descargo de Responsabilidad: SmartCargo-AIPA es un asesor preventivo, no un organismo certificador (TSA, IATA, Forwarder). Nuestro asesoramiento se basa en datos documentados y no sustituye la inspección física del transportista.",
         ask_advisor_button: "Preguntar al Asesor",
         
-        // --- Consola Operacional AIPA (Nuevos Campos) ---
+        // --- Consola Operacional AIPA ---
         consola_title: "CONSOLA OPERACIONAL AIPA: Verificación Pre-Despacho",
         data_awb_title: "1. Datos AWB y Dimensiones (Pulgadas por Defecto)",
         awb_label: "Número AWB / BOL:",
@@ -139,13 +139,12 @@ const LANGS = {
 
 /**
  * Función que cambia el idioma de la interfaz.
- * @param {string} lang - 'en' o 'es'
  */
 function setLang(lang) {
     LANG = lang;
     const l = LANGS[LANG];
 
-    // Navegación y Títulos
+    // ... (Lógica de traducción de todos los elementos)
     document.getElementById('app_title').textContent = l.app_title;
     document.getElementById('nav_cargas').textContent = l.nav_cargas;
     document.getElementById('nav_pagos').textContent = l.nav_pagos;
@@ -186,7 +185,6 @@ function setLang(lang) {
     
     document.getElementById('weight_match_label').textContent = l.weight_match_label;
     
-    // Opciones de SÍ/NO (Para evitar duplicación de IDs en el HTML)
     document.querySelectorAll('[id^="check_yes"]').forEach(el => el.textContent = l.check_yes);
     document.querySelectorAll('[id^="check_no"]').forEach(el => el.textContent = l.check_no);
 
@@ -194,12 +192,11 @@ function setLang(lang) {
 
     // Actualizar botones de pago
     generatePaymentButtons();
-    // Re-renderizar tarjetas de carga para actualizar traducciones de Risk Score
-    // (Necesitaría la lista de cargas, simularemos el refresh)
+    
+    // Re-renderizar tarjetas de carga para traducciones
     const cargoList = document.getElementById('cargo_list_display');
     const cards = cargoList.querySelectorAll('.cargo-card');
     cards.forEach(card => {
-        // Simple refresh para el Risk Score y alerts. En un sistema real sería más complejo.
         const scoreElement = card.querySelector('.risk-score');
         if (scoreElement) {
             scoreElement.textContent = `${l.risk_score_label}: ${scoreElement.dataset.score}%`;
@@ -211,24 +208,14 @@ function setLang(lang) {
 
 }
 
-/**
- * Muestra el panel seleccionado.
- * @param {string} panelId - ID del panel a mostrar ('cargas', 'pagos', 'asesoria').
- */
 function showPanel(panelId) {
     document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
     document.getElementById(panelId).classList.add('active');
-
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(`nav_${panelId}`).classList.add('active');
-
     CURRENT_PANEL = panelId;
 }
 
-/**
- * Muestra u oculta la opción de Segregación DG.
- * @param {string} dgType - Valor del selector de DG.
- */
 function toggleDGSeparation(dgType) {
     const separationGroup = document.getElementById('dg_separation_group');
     if (dgType === 'LITHIUM' || dgType === 'OTHER_DG') {
@@ -240,50 +227,30 @@ function toggleDGSeparation(dgType) {
     }
 }
 
-/**
- * Obtiene el factor de conversión para la unidad dada.
- * @param {string} unit - 'in' (pulgadas) o 'cm'.
- * @returns {number} Factor para convertir a centímetros.
- */
 function getUnitConversionFactor(unit) {
     return unit === 'in' ? 2.54 : 1;
 }
 
-/**
- * Convierte un valor de la unidad dada a centímetros.
- * @param {number} value - El valor a convertir.
- * @param {string} unit - La unidad de origen ('in' o 'cm').
- * @returns {number} El valor en centímetros.
- */
 function convertValueToCm(value, unit) {
     return value * getUnitConversionFactor(unit);
 }
 
-/**
- * Maneja el envío del nuevo formulario de carga.
- * @param {Event} event - Evento de envío del formulario.
- */
 async function submitNewCarga(event) {
     event.preventDefault();
 
     const awb = document.getElementById('awb_number').value;
     const content = document.getElementById('cargo_content').value;
-    
-    // Lectura de Unidades
     const lengthVal = parseFloat(document.getElementById('length_val').value);
     const widthVal = parseFloat(document.getElementById('width_val').value);
     const heightVal = parseFloat(document.getElementById('height_val').value);
     const unit = document.getElementById('unit_selector').value;
-    
     const weightVal = parseFloat(document.getElementById('weight_val').value);
     const weightUnit = document.getElementById('weight_unit_selector').value;
 
-    // Conversión a la unidad base del Backend (asumimos CM y KG como base de validación)
     const lengthCm = convertValueToCm(lengthVal, unit);
     const widthCm = convertValueToCm(widthVal, unit);
     const heightCm = convertValueToCm(heightVal, unit);
 
-    // Lectura de Checkpoints Operacionales
     const packingIntegrity = document.getElementById('packing_integrity').value;
     const labelingComplete = document.getElementById('labeling_complete').value;
     const ispm15Seal = document.getElementById('ispm15_seal').value;
@@ -291,7 +258,6 @@ async function submitNewCarga(event) {
     const dgSeparation = (dgType !== 'NO_DG') ? document.getElementById('dg_separation').value : 'NA';
     const weightMatch = document.getElementById('weight_match').value;
     
-    // Crear el objeto de carga con todos los datos
     const cargoData = {
         awb: awb,
         content: content,
@@ -300,8 +266,6 @@ async function submitNewCarga(event) {
         height_cm: parseFloat(heightCm.toFixed(2)),
         weight_declared: parseFloat(weightVal.toFixed(2)),
         weight_unit: weightUnit, 
-        
-        // Checkpoints Operacionales 
         packing_integrity: packingIntegrity,
         labeling_complete: labelingComplete,
         ispm15_seal: ispm15Seal,
@@ -324,9 +288,8 @@ async function submitNewCarga(event) {
         const result = await response.json();
         generateCargoCard(result);
         
-        // Limpiar el formulario después del envío exitoso
         document.querySelector('.operational-console').reset();
-        toggleDGSeparation('NO_DG'); // Resetear la visibilidad de DG separation
+        toggleDGSeparation('NO_DG'); 
 
     } catch (error) {
         console.error('Error al enviar la carga:', error);
@@ -335,10 +298,6 @@ async function submitNewCarga(event) {
 }
 
 
-/**
- * Genera y muestra una tarjeta de carga con el puntaje de riesgo.
- * @param {object} cargo - Objeto de carga con el resultado del riesgo.
- */
 function generateCargoCard(cargo) {
     const cargoList = document.getElementById('cargo_list_display');
     const l = LANGS[LANG];
@@ -352,9 +311,9 @@ function generateCargoCard(cargo) {
     const statusText = status === 'OK' ? l.status_ok : l.status_hold;
 
     let alertsHtml = '';
-    // NOTA: Se asume que el backend devuelve un array de IDs de alerta (ej: [R002, R004])
+    // NOTA: Se asume que standards.js tiene el ALERTS_DB
     if (cargo.alerts && cargo.alerts.length > 0) {
-        alertsHtml = cargo.alerts.map(a => `<li title="${standards.ALERTS_DB[a].desc}">${standards.ALERTS_DB[a].msg} (R${a})</li>`).join('');
+        alertsHtml = cargo.alerts.map(a => `<li title="${standards.ALERTS_DB[a].desc}">${standards.ALERTS_DB[a].msg} (${a})</li>`).join('');
         alertsHtml = `<p><strong>${l.alerts_label}:</strong></p><ul class="alert-list">${alertsHtml}</ul>`;
     }
 
@@ -376,18 +335,17 @@ function generateCargoCard(cargo) {
 }
 
 /**
- * Genera los botones de pago/servicios y los enlaza directamente a los Payment Links de Stripe.
+ * Genera los botones de pago y los enlaza a los Payment Links de Stripe.
  */
 function generatePaymentButtons() {
     const container = document.getElementById('payment_buttons_container');
     const l = LANGS[LANG];
     container.innerHTML = '';
 
-    // Mapeo de servicios a los enlaces reales de Stripe proporcionados
     const servicesMap = [
         { 
             desc: l.payment_services.service_1, 
-            url: null, // Gratuito, no requiere link de pago
+            url: null, 
             type: 'free' 
         },
         { 
@@ -407,12 +365,9 @@ function generatePaymentButtons() {
         button.textContent = service.desc;
         
         if (service.type === 'free') {
-            // El servicio gratuito solo muestra una alerta (no hay redirección)
             button.onclick = () => alert(LANG === 'es' ? 'El servicio de Puntaje AIPA es gratuito e instantáneo.' : 'The AIPA Score service is free and instant.');
         } else {
-            // Los servicios de pago redirigen directamente al link de Stripe
             button.onclick = () => {
-                // Mensaje de confirmación antes de salir de la aplicación
                 alert(LANG === 'es' ? 'Será redirigido a la pasarela de pago para completar la compra.' : 'You will be redirected to the payment gateway to complete the purchase.');
                 window.location.href = service.url;
             };
@@ -442,9 +397,8 @@ async function getAdvisory() {
         }
 
         const result = await response.json();
-        const advisorResponse = result.data; // Asumiendo que el campo es 'data' del backend
+        const advisorResponse = result.data; 
         
-        // Aplicar la regla de 4 líneas: separar el primer párrafo del resto
         const paragraphs = advisorResponse.split('\n\n');
         const mainAdvice = paragraphs[0];
         const context = paragraphs.slice(1).join('<br>');
@@ -467,11 +421,9 @@ async function getAdvisory() {
 
 // Inicialización de la aplicación
 (function () {
-    // Establecer el idioma por defecto a Inglés (en) como se solicitó
     setLang('en'); 
     showPanel('cargas'); 
     generatePaymentButtons();
-    // Inicializar la visibilidad de DG separation
     document.addEventListener('DOMContentLoaded', () => {
         const dgTypeElement = document.getElementById('dg_type');
         if (dgTypeElement) {
