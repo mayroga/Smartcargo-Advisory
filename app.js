@@ -279,3 +279,41 @@ function renderCargoCard(c) {
 
     list.prepend(card);
 }
+// =============================================================
+// FUNCIÓN PARA EL CENTRO DE PAGOS
+// =============================================================
+async function handlePayment(amount, description) {
+    // 1. Crear el objeto FormData que el backend espera
+    const formData = new FormData();
+    formData.append('amount', amount);
+    formData.append('description', description);
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/create-payment`, {
+            method: 'POST',
+            // NO se usa 'Content-Type: application/json' cuando se envía FormData
+            body: formData, 
+        });
+
+        if (!res.ok) {
+            throw new Error(`Error al crear el pago. Estado: ${res.status}`);
+        }
+
+        const json = await res.json();
+        
+        // 2. Redireccionar o mostrar el enlace (la lógica que solía funcionar)
+        if (json.url) {
+            window.location.href = json.url; 
+        } else {
+            alert("Error: El servidor no proporcionó un enlace de pago.");
+        }
+
+    } catch (error) {
+        console.error("Error en el Centro de Pagos:", error);
+        alert(`Fallo en el Centro de Pagos. Revise logs y la conexión al backend. Detalle: ${error.message}`);
+    }
+}
+
+// Ejemplo de cómo se llamaría esta función desde un botón en el HTML (no incluido aquí):
+// Por ejemplo, si tienes un botón para el "Reporte PDF - $15":
+// <button onclick="handlePayment(15, 'Reporte PDF Detallado')">Pagar $15</button>
