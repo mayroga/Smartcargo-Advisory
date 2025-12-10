@@ -117,8 +117,8 @@ export const OPTIONAL_ADDONS_DISPLAY = [
 
 // ------------------------------------------------------------------------------
 // 🚨 CORRECCIÓN CRÍTICA: DATABASE DE ALERTAS PARA LA CONSOLA OPERACIONAL
-// ¡CLAVE! Se asigna a 'window.standards' para asegurar la ACCESIBILIDAD GLOBAL
-// en app.js y evitar errores de 'is not defined'.
+// Se asigna a 'window.standards' para asegurar la ACCESIBILIDAD GLOBAL
+// y permitir que app.js obtenga los mensajes de alerta (R001, R002, etc.).
 // ------------------------------------------------------------------------------
 
 window.standards = { 
