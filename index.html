@@ -3,107 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo AIPA - Expert Advisor</title>
+    <title>SmartCargo AIPA - Logistics Bridge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .risk-glow { text-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .btn-disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-    </style>
+    <style>.btn-disabled { opacity: 0.4; pointer-events: none; }</style>
 </head>
-<body class="bg-gray-100 font-sans leading-normal">
+<body class="bg-slate-50 text-slate-900 font-sans">
 
-    <nav class="bg-slate-900 text-white p-4 shadow-xl">
+    <nav class="bg-blue-900 text-white p-4 shadow-xl">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 id="navTitle" class="text-xl font-black italic tracking-tighter">SMARTCARGO AIPA</h1>
+            <h1 id="navTitle" class="text-xl font-black italic">SMARTCARGO AIPA</h1>
             <div class="flex space-x-2">
-                <button onclick="changeLang('es')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-black">ESPAÑOL</button>
-                <button onclick="changeLang('en')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-black">ENGLISH</button>
+                <button onclick="changeLang('es')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-blue-900 transition">ESPAÑOL</button>
+                <button onclick="changeLang('en')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-blue-900 transition">ENGLISH</button>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto p-4 max-w-6xl mt-2">
-        <div class="bg-amber-50 border-l-4 border-amber-600 p-3 mb-6 shadow-sm">
-            <p id="legalText" class="text-[10px] text-amber-900 leading-tight">
-                <strong>AVISO LEGAL:</strong> SmartCargo AIPA es un servicio de asesoría técnica preventiva. No realizamos inspecciones físicas ni certificaciones. La responsabilidad final es del expedidor.
+    <main class="container mx-auto p-4 max-w-6xl">
+        
+        <section class="mb-8 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-600">
+            <h2 id="objTitle" class="text-blue-900 font-black text-lg mb-2 uppercase italic">Nuestro Objetivo / Our Mission</h2>
+            <p id="objText" class="text-sm text-slate-600 leading-relaxed">
+                SmartCargo AIPA nace para eliminar la incertidumbre en la cadena logística. Servimos como un <strong>puente de asesoría técnica</strong> entre el dueño de la carga, el forwarder, el transportista y la aerolínea, asegurando que todos hablen el mismo idioma técnico y eviten rechazos costosos mediante el cumplimiento preventivo de las normas IATA.
             </p>
-        </div>
+        </section>
 
         <div class="grid md:grid-cols-2 gap-8">
-            <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                <h2 id="sec1Title" class="font-bold text-slate-800 mb-6 border-b pb-2 uppercase tracking-wide">Validación de Riesgo</h2>
+            <section class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 id="sec1Title" class="font-bold text-blue-900 mb-6 border-b pb-2 uppercase italic">Auditoría Técnica</h2>
                 <form id="cargoForm" class="space-y-4">
-                    <input type="text" name="awb" placeholder="AWB Number" class="w-full p-3 border rounded-lg text-sm bg-gray-50" required>
+                    <input type="text" name="awb" placeholder="AWB (000-00000000)" class="w-full p-3 border rounded-xl bg-slate-50 text-sm">
                     
-                    <div class="grid grid-cols-3 gap-3">
-                        <input type="number" name="length_cm" placeholder="L (cm)" class="p-3 border rounded-lg text-sm" required>
-                        <input type="number" name="width_cm" placeholder="W (cm)" class="p-3 border rounded-lg text-sm" required>
-                        <input type="number" name="height_cm" placeholder="H (cm)" class="p-3 border rounded-lg text-sm" required>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" name="weight_declared" placeholder="Weight (kg)" class="p-3 border rounded-lg text-sm" required>
-                        <select name="dg_type" class="p-3 border rounded-lg text-sm bg-blue-50">
-                            <option value="NONE">General Cargo</option>
-                            <option value="DANGEROUS">Dangerous Goods</option>
-                            <option value="PERISHABLE">Perishable</option>
+                    <div class="flex items-center space-x-4 mb-2">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Unidades / Units:</label>
+                        <select id="unitSelect" onchange="updateUnitPlaceholders()" class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded-full">
+                            <option value="cm">CM / KG</option>
+                            <option value="in">INCHES / LB</option>
                         </select>
                     </div>
 
-                    <select name="ispm15_seal" class="w-full p-3 border rounded-lg text-sm">
-                        <option value="YES">Sello ISPM-15 Presente (Madera)</option>
-                        <option value="NO">SIN Sello ISPM-15 (Madera)</option>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="number" name="length" id="inputL" placeholder="L" class="p-3 border rounded-xl text-sm">
+                        <input type="number" name="width" id="inputW" placeholder="W" class="p-3 border rounded-xl text-sm">
+                        <input type="number" name="height" id="inputH" placeholder="H" class="p-3 border rounded-xl text-sm">
+                    </div>
+
+                    <input type="number" name="weight" id="inputWeight" placeholder="Weight" class="w-full p-3 border rounded-xl text-sm">
+
+                    <select name="ispm15_seal" id="sealSelect" class="w-full p-3 border rounded-xl text-sm">
+                        <option value="YES">Sello ISPM-15 (Madera)</option>
+                        <option value="NO">SIN Sello (Madera - Riesgo)</option>
                         <option value="EXEMPT">Exento (Plástico/Metal/Cartón)</option>
                     </select>
 
-                    <div class="p-4 bg-green-50 rounded-xl border border-green-200">
-                        <label id="priceLabel" class="block text-[10px] font-bold text-green-700 mb-2 uppercase">Tipo de Carga / Tarifa:</label>
-                        <select id="priceSelect" class="w-full p-2 border-green-300 border rounded font-bold text-green-800">
-                            <option value="25">Courier / Small Box - $25.00</option>
-                            <option value="45">Standard Cargo / Pallet - $45.00</option>
-                            <option value="85">Special / DG / Oversized - $85.00</option>
+                    <div class="p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                        <label id="priceLabel" class="text-[10px] font-bold text-slate-500 uppercase">Tarifa de Asesoría:</label>
+                        <select id="priceSelect" class="w-full p-2 mt-1 border rounded bg-white font-bold text-blue-900">
+                            <option value="25">Courier/Small - $25.00</option>
+                            <option value="45">Standard/Pallet - $45.00</option>
+                            <option value="85">Special/DG - $85.00</option>
                         </select>
                     </div>
 
-                    <button type="button" id="payBtn" class="w-full bg-green-600 text-white py-4 rounded-xl font-black hover:bg-green-700 transition shadow-lg">PAGAR Y ACTIVAR</button>
-                    <button type="submit" id="valBtn" disabled class="w-full bg-blue-600 text-white py-4 rounded-xl font-black btn-disabled">EJECUTAR AUDITORÍA</button>
+                    <button type="button" id="payBtn" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">PAGAR Y ACTIVAR</button>
+                    <button type="submit" id="valBtn" disabled class="w-full bg-blue-600 text-white py-4 rounded-xl font-black btn-disabled uppercase">Ejecutar Auditoría</button>
                 </form>
 
-                <div id="riskDisplay" class="mt-8 text-center hidden p-4 border-t">
-                    <div id="riskScore" class="text-5xl font-black risk-glow">0%</div>
-                    <div id="volData" class="text-xs text-slate-500 font-mono mt-2"></div>
-                    <div id="riskAlerts" class="mt-4 text-left text-xs text-red-600 space-y-2"></div>
+                <div id="riskDisplay" class="mt-6 text-center hidden p-4 border-t">
+                    <div id="riskScore" class="text-5xl font-black mb-1">0%</div>
+                    <div id="volData" class="text-[10px] text-slate-500 font-mono italic"></div>
+                    <div id="riskAlerts" class="mt-4 text-left text-xs text-red-600 space-y-1"></div>
                 </div>
             </section>
 
-            <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                <div class="flex justify-between items-center mb-6 border-b pb-2">
-                    <h2 id="sec2Title" class="font-bold text-slate-800 uppercase tracking-wide">Asesor IA & Visión</h2>
-                    <span id="queryCounter" class="bg-slate-100 text-[10px] px-2 py-1 rounded-full font-bold">CONSULTAS: 0/3</span>
+            <section class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="sec2Title" class="font-bold text-blue-900 uppercase italic">Asesoría IA Vision</h2>
+                    <span id="qCount" class="bg-blue-100 text-blue-800 text-[10px] px-2 py-1 rounded-full font-bold uppercase">Consultas: 0/3</span>
                 </div>
                 
                 <form id="advForm" class="space-y-4">
-                    <textarea id="advPrompt" placeholder="Duda técnica o análisis de foto..." class="w-full p-4 border rounded-xl h-36 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    <textarea id="advPrompt" class="w-full p-4 border rounded-xl h-32 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     
-                    <label class="flex items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl cursor-pointer hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-camera mr-3 text-blue-600 text-xl"></i>
-                        <span id="photoLabel" class="text-xs font-bold text-slate-600 uppercase">Subir foto de carga / etiquetas</span>
+                    <label class="flex flex-col items-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                        <i class="fa-solid fa-camera text-2xl text-blue-600 mb-2"></i>
+                        <span id="photoLabel" class="text-[10px] font-bold text-slate-500 uppercase">Subir foto de carga / etiquetas</span>
                         <input type="file" id="cargoImg" accept="image/*" class="hidden">
                     </label>
 
-                    <button type="submit" id="advBtn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition shadow-lg uppercase text-sm">Consultar Asesor</button>
+                    <button type="submit" id="advBtn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-sm tracking-widest shadow-xl">Consultar</button>
                 </form>
 
-                <div id="advResponse" class="mt-6 p-5 bg-blue-50 rounded-xl text-xs italic border border-blue-100 min-h-[200px] text-slate-700 leading-relaxed overflow-y-auto">
+                <div id="advResponse" class="mt-6 p-4 bg-blue-50 rounded-xl text-[11px] italic border border-blue-100 min-h-[150px] leading-relaxed text-slate-700">
                     A la espera de su consulta técnica...
                 </div>
             </section>
         </div>
     </main>
 
-    <footer class="mt-12 py-10 bg-slate-900 text-white text-center">
-        <p class="text-[10px] opacity-50 uppercase tracking-widest px-6">SmartCargo AIPA - Information & Advisory Only - Bilingüe Nativo</p>
+    <footer class="mt-12 py-10 bg-blue-900 text-white text-center text-[10px] opacity-60 uppercase tracking-widest px-8">
+        SmartCargo AIPA &copy; 2024 - Information Only - Global Advisory Bridge
     </footer>
 
     <script src="app.js"></script>
