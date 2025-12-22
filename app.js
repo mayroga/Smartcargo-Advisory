@@ -1,66 +1,67 @@
 const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
-const dictionary = {
+const content = {
     en: {
-        title: "SMARTCARGO AIPA | DIGITAL ADVISOR",
-        legal: "TECHNICAL ADVISORY ONLY: We are NOT TSA, Forwarders, or Carriers. We provide technical guidance to help you reach 100% compliance. Final execution is responsibility of the user.",
-        btn_audit: "RUN TECHNICAL AUDIT",
-        btn_pay: "ACTIVATE ADVISOR",
-        issue: "IRREGULARITY DETECTED",
-        sol: "TECHNICAL SOLUTION",
-        placeholder: "Ask about DG, Stacking, Labels..."
+        title: "SMARTCARGO AIPA | TECHNICAL ADVISORY SYSTEM",
+        legal: "PROFESSIONAL DISCLOSURE: SmartCargo AIPA operates as an independent technical advisory tool. All data provided serves as a pre-shipment quality audit. Official classification and cargo acceptance are reserved for licensed carriers and regulated authorities.",
+        execute: "RUN TECHNICAL AUDIT",
+        issue: "TECHNICAL IRREGULARITY",
+        remediation: "RECOMMENDED REMEDIATION",
+        placeholder: "Enter technical query or upload image for visual audit..."
     },
     es: {
-        title: "SMARTCARGO AIPA | ASESOR DIGITAL",
-        legal: "SOLO ASESORÍA TÉCNICA: NO somos TSA, Forwarders ni Aerolíneas. Proveemos guía técnica para alcanzar 100% cumplimiento. La ejecución final es responsabilidad del usuario.",
-        btn_audit: "EJECUTAR AUDITORÍA",
-        btn_pay: "ACTIVAR ASESOR",
-        issue: "IRREGULARIDAD DETECTADA",
-        sol: "SOLUCIÓN TÉCNICA",
-        placeholder: "Pregunte sobre DG, Apilamiento, Etiquetas..."
+        title: "SMARTCARGO AIPA | SISTEMA DE ASESORÍA TÉCNICA",
+        legal: "AVISO PROFESIONAL: SmartCargo AIPA opera como una herramienta independiente de asesoría técnica. Toda la información sirve como auditoría de calidad previa al embarque. La clasificación oficial y aceptación de carga están reservadas para transportistas licenciados y autoridades reguladas.",
+        execute: "EJECUTAR AUDITORÍA TÉCNICA",
+        issue: "IRREGULARIDAD TÉCNICA",
+        remediation: "REMEDIACIÓN RECOMENDADA",
+        placeholder: "Ingrese consulta técnica o suba imagen para auditoría visual..."
     }
 };
 
-function changeLanguage(lang) {
+function updateLanguage(lang) {
     localStorage.setItem("lang", lang);
-    const d = dictionary[lang];
-    
-    document.getElementById("mainTitle").innerText = d.title;
-    document.getElementById("disclaimerText").innerText = d.legal;
-    document.getElementById("valBtn").innerText = d.btn_audit;
-    document.getElementById("payBtn").innerText = d.btn_pay;
-    document.getElementById("advPrompt").placeholder = d.placeholder;
-    // (Añadir aquí el resto de IDs de labels de tu HTML para traducción total)
+    const c = content[lang];
+    document.getElementById("mainTitle").innerText = c.title;
+    document.getElementById("disclaimerText").innerText = c.legal;
+    document.getElementById("valBtn").innerText = c.execute;
+    document.getElementById("advPrompt").placeholder = c.placeholder;
 }
 
+// PROCESO DE AUDITORÍA
 document.getElementById("cargoForm").onsubmit = async (e) => {
     e.preventDefault();
     const lang = localStorage.getItem("lang") || "en";
     const fd = new FormData(e.target);
     
-    const res = await fetch(`${BASE_URL}/cargas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            awb: fd.get("awb"),
-            length: parseFloat(fd.get("length")),
-            width: parseFloat(fd.get("width")),
-            height: parseFloat(fd.get("height")),
-            weight: parseFloat(fd.get("weight")),
-            ispm15_seal: fd.get("ispm15_seal"),
-            pkg_type: fd.get("pkgTypeSelect").value,
-            unit_system: document.getElementById("unitSelect").value
-        })
-    });
-    
+    const res = await fetch(`${BASE_URL}/cargas`, { method: "POST", body: fd });
     const data = await res.json();
+    
+    document.getElementById("riskDisplay").classList.remove("hidden");
     const container = document.getElementById("riskAlerts");
+    
     container.innerHTML = data.reports.map(r => `
-        <div class="mb-4 border-2 border-red-500 rounded">
-            <div class="bg-red-500 text-white p-1 text-xs font-bold uppercase">${dictionary[lang].issue}</div>
-            <div class="p-2 text-sm font-mono bg-white">${r.issue}</div>
-            <div class="bg-green-600 text-white p-1 text-xs font-bold uppercase">${dictionary[lang].sol}</div>
-            <div class="p-2 text-sm italic font-bold bg-green-50">${r.solution}</div>
+        <div style="border-left: 5px solid #d32f2f; background: #f9f9f9; padding: 15px; margin-bottom: 10px;">
+            <p style="color:#d32f2f; font-weight:bold; font-size: 12px; margin:0;">${content[lang].issue}</p>
+            <p style="font-family:'Courier New', monospace; margin: 5px 0;">${r.issue}</p>
+            <p style="color:#2e7d32; font-weight:bold; font-size: 12px; margin: 10px 0 0 0; border-top: 1px solid #ddd;">${content[lang].remediation}</p>
+            <p style="font-style:italic; font-weight: bold; color: #333;">${r.remediation}</p>
         </div>
     `).join("");
 };
+
+// ASESOR IA PROFESIONAL
+document.getElementById("advForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const out = document.getElementById("advResponse");
+    out.innerText = "Analyzing technical parameters...";
+    
+    const fd = new FormData(e.target);
+    const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+    const data = await res.json();
+    out.innerText = data.data;
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateLanguage(localStorage.getItem("lang") || "en");
+});
