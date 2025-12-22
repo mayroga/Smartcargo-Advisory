@@ -9,25 +9,25 @@ let LANG = "en";
 // PAGO STRIPE + BYPASS ADMIN
 // =====================================================
 async function handlePaymentClick() {
+    const awbValue = document.getElementsByName("awb")[0]?.value || "Unknown";
     const amount = 65;
-    const description = "SmartCargo Professional Tier";
+    const description = `SmartCargo Audit AWB: ${awbValue}`;
 
     const user = prompt("Admin User (Leave blank to pay):");
     let pass = null;
-
-    if (user) {
-        pass = prompt("Admin Password:");
-    }
+    if (user) pass = prompt("Admin Password:");
 
     try {
         const formData = new URLSearchParams();
         formData.append("amount", amount);
         formData.append("description", description);
+        formData.append("awb", awbValue); // <--- Enviamos el AWB
 
         if (user && pass) {
             formData.append("user", user);
             formData.append("password", pass);
         }
+        // ... resto del fetch igual
 
         const response = await fetch(`${BASE_URL}/create-payment`, {
             method: "POST",
