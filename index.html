@@ -129,3 +129,26 @@
 
 </body>
 </html>
+<div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700">Cargo Category</label>
+    <select name="dg_type" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+        <option value="NONE">General Cargo</option>
+        <option value="DANGEROUS">Dangerous Goods (DG)</option>
+        <option value="PERISHABLE">Perishables / Temperature Controlled</option>
+        <option value="LIVE_ANIMALS">Live Animals (LAR)</option>
+    </select>
+</div>
+
+<div class="flex items-start mt-6 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+    <input type="checkbox" id="terms" required class="mt-1 mr-3 h-4 w-4 text-blue-600 border-gray-300 rounded">
+    <label for="terms" class="text-[10px] leading-tight text-gray-500">
+        Entiendo que SmartCargo AIPA proporciona recomendaciones consultivas basadas en normativas IATA/ispm-15. 
+        Esta auditoría no sustituye la inspección física ni la responsabilidad del expedidor. 
+        Acepto que SmartCargo no es responsable por multas o retenciones.
+    </label>
+</div>
+
+<footer class="mt-10 text-center text-[10px] text-gray-400 max-w-2xl mx-auto">
+    SmartCargo AIPA proporciona recomendaciones basadas en inteligencia artificial y normativas estándar (IATA/ispm-15). 
+    Esta auditoría no sustituye la inspección física obligatoria ni la responsabilidad del expedidor (Shipper).
+</footer>
