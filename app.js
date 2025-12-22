@@ -1,67 +1,67 @@
 const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
-const content = {
+const i18n = {
     en: {
-        title: "SMARTCARGO AIPA | TECHNICAL ADVISORY SYSTEM",
-        legal: "PROFESSIONAL DISCLOSURE: SmartCargo AIPA operates as an independent technical advisory tool. All data provided serves as a pre-shipment quality audit. Official classification and cargo acceptance are reserved for licensed carriers and regulated authorities.",
-        execute: "RUN TECHNICAL AUDIT",
+        header: "TECHNICAL ADVISORY DASHBOARD",
+        legal: "ADVISORY DISCLOSURE: SmartCargo AIPA provides independent quality audits. We are not a Forwarder, TSA, or IATA authority. Final cargo validation is reserved for licensed carriers.",
+        step1: "1. DATA AUDIT",
+        step2: "2. VISUAL ADVISOR (3 PHOTOS MAX)",
         issue: "TECHNICAL IRREGULARITY",
-        remediation: "RECOMMENDED REMEDIATION",
-        placeholder: "Enter technical query or upload image for visual audit..."
+        remedy: "SUGGESTED REMEDIATION"
     },
     es: {
-        title: "SMARTCARGO AIPA | SISTEMA DE ASESORÍA TÉCNICA",
-        legal: "AVISO PROFESIONAL: SmartCargo AIPA opera como una herramienta independiente de asesoría técnica. Toda la información sirve como auditoría de calidad previa al embarque. La clasificación oficial y aceptación de carga están reservadas para transportistas licenciados y autoridades reguladas.",
-        execute: "EJECUTAR AUDITORÍA TÉCNICA",
+        header: "PANEL DE ASESORÍA TÉCNICA",
+        legal: "AVISO PROFESIONAL: SmartCargo AIPA provee auditorías de calidad independientes. No somos Forwarder, TSA, ni autoridad IATA. La validación final está reservada para transportistas autorizados.",
+        step1: "1. AUDITORÍA DE DATOS",
+        step2: "2. ASESOR VISUAL (MÁX. 3 FOTOS)",
         issue: "IRREGULARIDAD TÉCNICA",
-        remediation: "REMEDIACIÓN RECOMENDADA",
-        placeholder: "Ingrese consulta técnica o suba imagen para auditoría visual..."
+        remedy: "REMEDIACIÓN SUGERIDA"
     }
 };
 
-function updateLanguage(lang) {
+function setLanguage(lang) {
     localStorage.setItem("lang", lang);
-    const c = content[lang];
-    document.getElementById("mainTitle").innerText = c.title;
-    document.getElementById("disclaimerText").innerText = c.legal;
-    document.getElementById("valBtn").innerText = c.execute;
-    document.getElementById("advPrompt").placeholder = c.placeholder;
+    const d = i18n[lang];
+    document.getElementById("mainHeader").innerText = d.header;
+    document.getElementById("disclaimer").innerText = d.legal;
+    // ... apply translations to other labels
 }
 
-// PROCESO DE AUDITORÍA
-document.getElementById("cargoForm").onsubmit = async (e) => {
-    e.preventDefault();
-    const lang = localStorage.getItem("lang") || "en";
-    const fd = new FormData(e.target);
-    
-    const res = await fetch(`${BASE_URL}/cargas`, { method: "POST", body: fd });
-    const data = await res.json();
-    
-    document.getElementById("riskDisplay").classList.remove("hidden");
-    const container = document.getElementById("riskAlerts");
-    
-    container.innerHTML = data.reports.map(r => `
-        <div style="border-left: 5px solid #d32f2f; background: #f9f9f9; padding: 15px; margin-bottom: 10px;">
-            <p style="color:#d32f2f; font-weight:bold; font-size: 12px; margin:0;">${content[lang].issue}</p>
-            <p style="font-family:'Courier New', monospace; margin: 5px 0;">${r.issue}</p>
-            <p style="color:#2e7d32; font-weight:bold; font-size: 12px; margin: 10px 0 0 0; border-top: 1px solid #ddd;">${content[lang].remediation}</p>
-            <p style="font-style:italic; font-weight: bold; color: #333;">${r.remediation}</p>
-        </div>
-    `).join("");
-};
-
-// ASESOR IA PROFESIONAL
+// Visual Audit with Photo Limit
 document.getElementById("advForm").onsubmit = async (e) => {
     e.preventDefault();
     const out = document.getElementById("advResponse");
-    out.innerText = "Analyzing technical parameters...";
-    
+    const lang = localStorage.getItem("lang") || "en";
+    out.innerText = lang === 'en' ? "Analyzing..." : "Analizando...";
+
     const fd = new FormData(e.target);
+    fd.append("awb", document.getElementById("awbInput").value);
+
     const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
     const data = await res.json();
-    out.innerText = data.data;
+    
+    out.innerHTML = `<div class="p-4 bg-gray-50 border-l-4 border-blue-600 font-sans text-sm">${data.data}</div>`;
+    if(data.remaining !== undefined) {
+        document.getElementById("counter").innerText = `Photos left: ${data.remaining}`;
+    }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    updateLanguage(localStorage.getItem("lang") || "en");
-});
+// Data Audit with 2-Point Limit
+document.getElementById("auditForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const res = await fetch(`${BASE_URL}/audit-basic`, { method: "POST", body: fd });
+    const data = await res.json();
+    
+    const lang = localStorage.getItem("lang") || "en";
+    const reportHtml = data.reports.map(r => `
+        <div class="mb-4 p-3 bg-white border border-gray-200 shadow-sm">
+            <p class="text-xs font-bold text-red-600 uppercase">${i18n[lang].issue}</p>
+            <p class="text-sm mb-2">${r.issue}</p>
+            <p class="text-xs font-bold text-green-700 uppercase border-t pt-1">${i18n[lang].remedy}</p>
+            <p class="text-sm italic font-semibold">${r.suggestion}</p>
+        </div>
+    `).join("");
+    
+    document.getElementById("reportContainer").innerHTML = reportHtml;
+};
