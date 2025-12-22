@@ -1,125 +1,104 @@
 const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
-// 1. Manejo de Pagos y Acceso Admin
-async function handlePaymentClick() {
-    const awbValue = document.getElementsByName("awb")[0]?.value || "Unknown";
-    const amount = 65;
-    const description = `SmartCargo Audit AWB: ${awbValue}`;
+// --- TRADUCTOR DE INTERFAZ ---
+const translations = {
+    es: {
+        legal: "AVISO: SmartCargo AIPA es un servicio de asesoría técnica informativa. La responsabilidad final es del expedidor.",
+        sec1: "AUDITORÍA DE RIESGO",
+        sec2: "CONSULTORÍA IA & VISIÓN",
+        pay: "PAGAR Y ACTIVAR VALIDACIÓN",
+        val: "EJECUTAR AUDITORÍA TÉCNICA",
+        photo: "Subir foto de la carga",
+        wait: "Consultando asesor experto..."
+    },
+    en: {
+        legal: "NOTICE: SmartCargo AIPA is a technical advisory service. Final responsibility rests with the shipper.",
+        sec1: "RISK AUDIT",
+        sec2: "AI CONSULTANCY & VISION",
+        pay: "PAY AND ACTIVATE VALIDATION",
+        val: "RUN TECHNICAL AUDIT",
+        photo: "Upload cargo photo",
+        wait: "Consulting expert advisor..."
+    }
+};
 
-    const user = prompt("Admin User (Dejar en blanco para pagar con tarjeta):");
-    let pass = null;
-    if (user) pass = prompt("Admin Password:");
-
-    try {
-        const formData = new URLSearchParams();
-        formData.append("amount", amount);
-        formData.append("description", description);
-        formData.append("awb", awbValue);
-
-        if (user && pass) {
-            formData.append("user", user);
-            formData.append("password", pass);
-        }
-
-        const response = await fetch(`${BASE_URL}/create-payment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData
-        });
-
-        const result = await response.json();
-        if (result.url) {
-            window.location.href = result.url;
-            // Guardamos sesión temporal si es admin para habilitar el botón al volver
-            if (user) localStorage.setItem("admin_active", "true");
-        } else {
-            alert("Error al procesar el pago");
-        }
-    } catch (err) { alert("Error de conexión con el servidor"); }
+function changeLang(lang) {
+    const t = translations[lang];
+    document.getElementById("legalText").innerText = t.legal;
+    document.getElementById("section1Title").innerText = t.sec1;
+    document.getElementById("section2Title").innerText = t.sec2;
+    document.getElementById("payBtn").innerText = t.pay;
+    document.getElementById("valBtn").innerText = t.val;
+    document.getElementById("photoLabel").innerText = t.photo;
+    localStorage.setItem("lang", lang);
 }
 
-// 2. Validación de Carga con Semáforo de Colores
-async function handleCargoValidation(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const cargoData = Object.fromEntries(formData);
+// --- PAGOS STRIPE ---
+document.getElementById("payBtn").onclick = async () => {
+    const awb = document.getElementsByName("awb")[0].value;
+    const price = document.getElementById("priceSelect").value;
     
-    const userEmail = prompt("¿A qué email enviamos el reporte de cumplimiento?");
-    if (userEmail) cargoData.email = userEmail;
+    const user = prompt("Admin User (Opcional):");
+    const pass = user ? prompt("Admin Pass:") : null;
 
-    try {
-        const response = await fetch(`${BASE_URL}/cargas`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(cargoData)
-        });
-        const result = await response.json();
-        
-        const scoreDisplay = document.getElementById("alertaScoreDisplay");
-        const score = result.alertaScore;
+    const body = new URLSearchParams({ amount: price, awb: awb, description: `Service AWB ${awb}` });
+    if (user) { body.append("user", user); body.append("password", pass); }
 
-        // --- SISTEMA DE COLORES (SEMÁFORO) ---
-        scoreDisplay.innerText = `${score}% RISK`;
-        if (score < 30) {
-            scoreDisplay.className = "mt-4 text-center text-3xl font-black text-green-600";
-        } else if (score >= 30 && score < 70) {
-            scoreDisplay.className = "mt-4 text-center text-3xl font-black text-amber-500";
-        } else {
-            scoreDisplay.className = "mt-4 text-center text-3xl font-black text-red-600 animate-pulse";
-        }
+    const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body });
+    const data = await res.json();
+    if (data.url) {
+        window.location.href = data.url;
+        if (user) localStorage.setItem("admin", "true");
+    }
+};
 
-        document.getElementById("alertsList").innerHTML = result.alerts.length === 0 ? 
-            "<p class='text-green-600 font-bold'>✓ Compliance OK</p>" : 
-            result.alerts.map(a => `<p>🛑 ${a}</p>`).join("");
-        
-        alert(userEmail ? "Auditoría completada. Reporte enviado." : "Auditoría completada.");
-    } catch (err) { alert("Error en la validación"); }
-}
-
-// 3. Asesoría IA con Soporte de Visión (Fotos)
-async function handleAdvisory(e) {
+// --- AUDITORÍA Y RIESGO ---
+document.getElementById("cargoForm").onsubmit = async (e) => {
     e.preventDefault();
-    const promptValue = document.getElementById("advisoryPrompt").value;
-    const photoFile = document.getElementById("cargoPhoto")?.files[0];
-    const output = document.getElementById("advisory_response");
-
-    if (!promptValue && !photoFile) return;
-
-    output.innerText = "Consultando asesor bilingüe y analizando imagen...";
+    const fd = Object.fromEntries(new FormData(e.target));
     
-    // Usamos FormData para enviar texto e imagen simultáneamente
+    const res = await fetch(`${BASE_URL}/cargas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fd)
+    });
+    const data = await res.json();
+    
+    const resDiv = document.getElementById("riskResult");
+    const scoreDiv = document.getElementById("riskScore");
+    resDiv.classList.remove("hidden");
+
+    // SEMÁFORO DE COLORES
+    scoreDiv.innerText = `${data.alertaScore}% RISK`;
+    scoreDiv.className = "text-4xl font-black mb-2 " + 
+        (data.alertaScore < 30 ? "text-green-600" : data.alertaScore < 70 ? "text-amber-500" : "text-red-600 animate-pulse");
+
+    document.getElementById("volData").innerHTML = `Volumen: ${data.volumen} | Peso Vol: ${data.peso_vol} kg`;
+    document.getElementById("riskAlerts").innerHTML = data.alerts.map(a => `<div>🛑 ${a}</div>`).join("");
+};
+
+// --- ASESOR IA VISIÓN ---
+document.getElementById("advForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const prompt = document.getElementById("advPrompt").value;
+    const img = document.getElementById("cargoImg").files[0];
+    const out = document.getElementById("advResponse");
+
+    out.innerText = translations[localStorage.getItem("lang") || 'es'].wait;
     const formData = new FormData();
-    formData.append("prompt", promptValue || "Analiza esta imagen de carga para seguridad aérea.");
-    if (photoFile) {
-        formData.append("image", photoFile);
-    }
+    formData.append("prompt", prompt || "Analiza esta carga bilingüe.");
+    if (img) formData.append("image", img);
 
-    try {
-        const response = await fetch(`${BASE_URL}/advisory`, {
-            method: "POST",
-            body: formData // FETCH detecta automáticamente que es multipart/form-data
-        });
-        const result = await response.json();
-        output.innerText = result.data;
-    } catch (err) { 
-        output.innerText = "Error: El asesor no está disponible en este momento."; 
-    }
-}
+    const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: formData });
+    const data = await res.json();
+    out.innerText = data.data;
+};
 
-// 4. Inicialización y Control de Acceso
+// Inicialización
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("paymentButton")?.addEventListener("click", handlePaymentClick);
-    document.getElementById("cargoValidationForm")?.addEventListener("submit", handleCargoValidation);
-    document.getElementById("advisoryForm")?.addEventListener("submit", handleAdvisory);
-
-    // Habilitar el botón de validación si regresamos de un pago exitoso o somos admin
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("access") === "granted" || localStorage.getItem("admin_active")) {
-        const validateBtn = document.getElementById("validateBtn");
-        if (validateBtn) {
-            validateBtn.disabled = false;
-            validateBtn.classList.remove("opacity-50");
-            validateBtn.classList.add("hover:bg-blue-700", "cursor-pointer");
-        }
+    if (window.location.search.includes("access=granted") || localStorage.getItem("admin")) {
+        const v = document.getElementById("valBtn");
+        v.disabled = false; v.classList.remove("opacity-50", "cursor-not-allowed");
     }
+    changeLang(localStorage.getItem("lang") || 'es');
 });
