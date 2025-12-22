@@ -2,111 +2,130 @@ const BASE_URL = "https://smartcargo-aipa.onrender.com";
 let queryCount = 0;
 const MAX_QUERIES = 3;
 
-const i18n = {
+const langDict = {
     es: {
-        pay: "PAGAR Y ACTIVAR", val: "EJECUTAR AUDITORÍA", 
-        wait: "Procesando consulta técnica...", 
-        limit: "LÍMITE ALCANZADO. Inicie nueva auditoría.",
-        access: "ACCESO DENEGADO. Requiere pago previo.",
-        photo: "Subir foto de carga / etiquetas"
+        objT: "Nuestro Objetivo",
+        objX: "SmartCargo AIPA nace para eliminar la incertidumbre en la cadena logística. Servimos como un puente de asesoría técnica entre el dueño de la carga, el forwarder, el transportista y la aerolínea.",
+        sec1: "Auditoría Técnica",
+        sec2: "Asesoría IA Vision",
+        pay: "PAGAR Y ACTIVAR",
+        val: "Ejecutar Auditoría",
+        photo: "Subir foto de carga / etiquetas",
+        wait: "Procesando consulta técnica...",
+        limit: "SESIÓN FINALIZADA. Requiere nuevo pago.",
+        placeholder: "Describa su duda técnica aquí...",
+        seal1: "Sello ISPM-15 (Madera)",
+        seal2: "SIN Sello (Madera - Riesgo)",
+        seal3: "Exento (Plástico/Metal/Cartón)",
+        qText: "Consultas"
     },
     en: {
-        pay: "PAY AND ACTIVATE", val: "RUN AUDIT", 
-        wait: "Processing technical inquiry...", 
-        limit: "LIMIT REACHED. Please start a new audit.",
-        access: "ACCESS DENIED. Payment required.",
-        photo: "Upload cargo photo / labels"
+        objT: "Our Mission",
+        objX: "SmartCargo AIPA was created to eliminate uncertainty in the logistics chain. We serve as a technical advisory bridge between the cargo owner, forwarder, trucker, and airline.",
+        sec1: "Technical Audit",
+        sec2: "AI Vision Advisory",
+        pay: "PAY AND ACTIVATE",
+        val: "Run Audit",
+        photo: "Upload cargo photo / labels",
+        wait: "Processing technical inquiry...",
+        limit: "SESSION FINISHED. New payment required.",
+        placeholder: "Describe your technical doubt here...",
+        seal1: "ISPM-15 Seal (Wood)",
+        seal2: "No Seal (Wood - Risk)",
+        seal3: "Exempt (Plastic/Metal/Cardboard)",
+        qText: "Queries"
     }
 };
 
 function changeLang(lang) {
     localStorage.setItem("lang", lang);
-    location.reload(); // Recarga para aplicar i18n y refrescar estados
+    const d = langDict[lang];
+    document.getElementById("navTitle").innerText = "SMARTCARGO AIPA";
+    document.getElementById("objTitle").innerText = d.objT;
+    document.getElementById("objText").innerText = d.objX;
+    document.getElementById("sec1Title").innerText = d.sec1;
+    document.getElementById("sec2Title").innerText = d.sec2;
+    document.getElementById("payBtn").innerText = d.pay;
+    document.getElementById("valBtn").innerText = d.val;
+    document.getElementById("photoLabel").innerText = d.photo;
+    document.getElementById("advPrompt").placeholder = d.placeholder;
+    document.getElementById("qCount").innerText = `${d.qText}: ${queryCount}/${MAX_QUERIES}`;
+    
+    // Traducción del Selector de Sellos
+    const sealS = document.getElementById("sealSelect");
+    sealS.options[0].text = d.seal1;
+    sealS.options[1].text = d.seal2;
+    sealS.options[2].text = d.seal3;
 }
 
-// Control de UI
-document.addEventListener("DOMContentLoaded", () => {
+function updateUnitPlaceholders() {
+    const unit = document.getElementById("unitSelect").value;
+    const suffix = unit === "cm" ? "(cm)" : "(in)";
+    const wSuffix = unit === "cm" ? "(kg)" : "(lb)";
+    document.getElementById("inputL").placeholder = "L " + suffix;
+    document.getElementById("inputW").placeholder = "W " + suffix;
+    document.getElementById("inputH").placeholder = "H " + suffix;
+    document.getElementById("inputWeight").placeholder = "Weight " + wSuffix;
+}
+
+// LÓGICA DE AUDITORÍA
+document.getElementById("cargoForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const unit = document.getElementById("unitSelect").value;
+    
+    const payload = {
+        awb: fd.get("awb"),
+        length: parseFloat(fd.get("length")),
+        width: parseFloat(fd.get("width")),
+        height: parseFloat(fd.get("height")),
+        weight: parseFloat(fd.get("weight")),
+        ispm15_seal: fd.get("ispm15_seal"),
+        unit_system: unit // Enviamos si es CM o IN al backend
+    };
+
+    const res = await fetch(`${BASE_URL}/cargas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    
+    document.getElementById("riskDisplay").classList.remove("hidden");
+    const s = document.getElementById("riskScore");
+    s.innerText = `${data.score}% RISK`;
+    s.className = "text-5xl font-black " + (data.score < 30 ? "text-green-600" : data.score < 70 ? "text-amber-500" : "text-red-600 animate-pulse");
+    document.getElementById("volData").innerText = data.details;
+    document.getElementById("riskAlerts").innerHTML = data.alerts.map(a => `<div>🛑 ${a}</div>`).join("");
+};
+
+// LÓGICA DEL ASESOR (FIX DE CONEXIÓN)
+document.getElementById("advForm").onsubmit = async (e) => {
+    e.preventDefault();
     const lang = localStorage.getItem("lang") || "es";
-    const hasAccess = window.location.search.includes("access=granted") || localStorage.getItem("admin");
+    const out = document.getElementById("advResponse");
 
-    if (hasAccess) {
-        const vBtn = document.getElementById("valBtn");
-        vBtn.disabled = false;
-        vBtn.classList.remove("btn-disabled");
+    if (queryCount >= MAX_QUERIES) { alert(langDict[lang].limit); return; }
+
+    queryCount++;
+    document.getElementById("qCount").innerText = `${langDict[lang].qText}: ${queryCount}/${MAX_QUERIES}`;
+    out.innerText = langDict[lang].wait;
+
+    const fd = new FormData();
+    fd.append("prompt", document.getElementById("advPrompt").value);
+    const photo = document.getElementById("cargoImg").files[0];
+    if (photo) fd.append("image", photo);
+
+    try {
+        const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+        const data = await res.json();
+        out.innerText = data.data;
+    } catch (err) {
+        out.innerText = "Connection Error. Please check your internet or API Key.";
     }
+};
 
-    // --- MANEJO DE PAGOS ---
-    document.getElementById("payBtn").onclick = async () => {
-        const awb = document.getElementsByName("awb")[0].value;
-        const amount = document.getElementById("priceSelect").value;
-        const user = prompt("Admin User:");
-        const pass = user ? prompt("Pass:") : null;
-
-        const body = new URLSearchParams({ amount, awb, description: `Service AWB ${awb}` });
-        if (user) { body.append("user", user); body.append("password", pass); }
-
-        const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body });
-        const data = await res.json();
-        if (data.url) {
-            window.location.href = data.url;
-            if (user) localStorage.setItem("admin", "true");
-        }
-    };
-
-    // --- AUDITORÍA DE RIESGO ---
-    document.getElementById("cargoForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const fd = Object.fromEntries(new FormData(e.target));
-        const res = await fetch(`${BASE_URL}/cargas`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(fd)
-        });
-        const data = await res.json();
-        
-        document.getElementById("riskDisplay").classList.remove("hidden");
-        const score = document.getElementById("riskScore");
-        score.innerText = `${data.alertaScore}% RISK`;
-        
-        // Semáforo visual
-        score.className = "text-5xl font-black " + 
-            (data.alertaScore < 30 ? "text-green-600" : data.alertaScore < 70 ? "text-amber-500" : "text-red-600 animate-pulse");
-
-        document.getElementById("volData").innerText = `VOL: ${data.volumen} | VOL-W: ${data.peso_vol} KG`;
-        document.getElementById("riskAlerts").innerHTML = data.alerts.map(a => `<div>🛑 ${a}</div>`).join("");
-    };
-
-    // --- ASESOR IA (3 CONSULTAS) ---
-    document.getElementById("advForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const out = document.getElementById("advResponse");
-        const lang = localStorage.getItem("lang") || "es";
-
-        if (!hasAccess) { alert(i18n[lang].access); return; }
-        if (queryCount >= MAX_QUERIES) { alert(i18n[lang].limit); return; }
-
-        queryCount++;
-        document.getElementById("queryCounter").innerText = `CONSULTAS: ${queryCount}/${MAX_QUERIES}`;
-        
-        const prompt = document.getElementById("advPrompt").value;
-        const img = document.getElementById("cargoImg").files[0];
-        const formData = new FormData();
-        formData.append("prompt", prompt || "Analyze this cargo.");
-        if (img) formData.append("image", img);
-
-        out.innerText = i18n[lang].wait;
-
-        try {
-            const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: formData });
-            const data = await res.json();
-            out.innerText = data.data;
-
-            if (queryCount === MAX_QUERIES) {
-                const btn = document.getElementById("advBtn");
-                btn.innerText = "SESIÓN FINALIZADA";
-                btn.classList.add("btn-disabled", "bg-gray-400");
-                out.innerHTML += "<br><br><b>Sesión cerrada. Para más dudas, inicie un nuevo pago.</b>";
-            }
-        } catch (e) { out.innerText = "Error de conexión."; }
-    };
+document.addEventListener("DOMContentLoaded", () => {
+    changeLang(localStorage.getItem("lang") || "es");
+    updateUnitPlaceholders();
 });
