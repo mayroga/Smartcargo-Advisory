@@ -3,78 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo AIPA - Advisor</title>
+    <title>SmartCargo Advisor</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
     <style>
-        .btn-disabled { opacity: 0.5; cursor: not-allowed; }
-        .result-box { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 10px; color: #333; }
-        .lang-switch { position: absolute; top: 10px; right: 10px; }
+        .risk-high { background: #d32f2f; color: white; padding: 10px; margin: 5px; border-radius: 5px; border-left: 10px solid black; }
+        .risk-medium { background: #ef6c00; color: white; padding: 10px; margin: 5px; border-radius: 5px; }
+        #legalBanner { background: #000; color: #ffeb3b; padding: 15px; font-weight: bold; text-align: center; font-size: 0.9em; border: 2px solid yellow; }
     </style>
 </head>
 <body>
+    <div id="legalBanner"></div>
 
-    <div class="lang-switch">
-        <button onclick="changeLang('es')">ES</button>
-        <button onclick="changeLang('en')">EN</button>
+    <div style="text-align: right; margin-top: 10px;">
+        <button onclick="changeLang('es')">ES</button> <button onclick="changeLang('en')">EN</button>
     </div>
 
-    <h1>SmartCargo Consulting</h1>
+    <h1>SmartCargo Advisor 360°</h1>
 
-    <section>
-        <h3>1. Activación de Servicio</h3>
-        <label>AWB / Guía:</label>
-        <input type="text" name="awb" placeholder="Ej: 123-4567890">
-        
-        <label>Plan:</label>
+    <fieldset>
+        <legend>1. Acceso al Sistema</legend>
+        <input type="text" name="awb" placeholder="Guía Aérea (AWB)">
         <select id="priceSelect">
-            <option value="10">Básico ($10 USD)</option>
-            <option value="25">Premium ($25 USD)</option>
+            <option value="10">Uso Individual - $10</option>
+            <option value="100">Uso Corporativo - $100</option>
         </select>
-        
-        <button id="payBtn">PAGAR Y ACTIVAR</button>
-    </section>
+        <button id="payBtn" style="width:100%">PAGAR Y ACTIVAR</button>
+    </fieldset>
 
-    <hr>
-
-    <section>
-        <h3>2. Auditoría Técnica AIPA</h3>
+    <fieldset>
+        <legend>2. Checkpoint Multirrol (TSA/IATA)</legend>
         <form id="auditForm">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <input type="number" id="length" placeholder="Largo" required step="0.1">
-                <input type="number" id="width" placeholder="Ancho" required step="0.1">
-                <input type="number" id="height" placeholder="Alto" required step="0.1">
-                <input type="number" id="weight" placeholder="Peso" required step="0.1">
-            </div>
-            
-            <label>Sistema:</label>
-            <select id="unit">
-                <option value="cm">Métrico (cm/kg)</option>
-                <option value="in">Imperial (in/lb)</option>
+            <label>Tu Rol:</label>
+            <select name="role">
+                <option value="counter">Counter / Documentación</option>
+                <option value="vasculero">Vasculero / Pesaje</option>
+                <option value="operativo">Operativo de Rampa</option>
+                <option value="camionero">Transportista</option>
             </select>
-
-            <label>¿Tiene Sello ISPM-15?</label>
-            <select id="ispm">
-                <option value="SI">SÍ</option>
-                <option value="NO">NO</option>
-            </select>
-
-            <button id="valBtn" type="submit" disabled class="btn-disabled">EJECUTAR AUDITORÍA</button>
+            <input type="number" name="h" placeholder="Altura (cm)" required>
+            <label>¿Madera con Sello?</label>
+            <select name="ispm"><option value="SI">SÍ</option><option value="NO">NO</option></select>
+            <label>¿Carga Peligrosa?</label>
+            <select name="dg"><option value="NO">NO</option><option value="SI">SÍ (HAZMAT)</option></select>
+            <label>¿Etiquetas hacia afuera?</label>
+            <select name="labels"><option value="SI">SÍ</option><option value="NO">NO</option></select>
+            <button id="valBtn" type="submit" disabled class="btn-disabled" style="width:100%">AUDITAR CARGA</button>
         </form>
-        <div id="auditResponse" class="result-box">Los resultados aparecerán aquí.</div>
-    </section>
+        <div id="auditResponse"></div>
+    </fieldset>
 
-    <hr>
-
-    <section>
-        <h3>3. Asesor IA (Soluciones Logísticas)</h3>
+    <fieldset>
+        <legend>3. Inspección Visual de Seguridad</legend>
+        <p style="font-size: 0.8em;">Tome fotos de los 4 lados para asegurar visibilidad de labels.</p>
         <form id="advForm">
-            <textarea id="advPrompt" name="prompt" placeholder="Pregunta sobre regulaciones, embalaje o rutas..." required></textarea>
-            <label>Foto de la carga (Opcional - Máx 3 por pago):</label>
-            <input type="file" id="cargoImg" name="image" accept="image/*">
-            <button type="submit">Consultar Asesor</button>
+            <textarea name="prompt" placeholder="Describa el problema o haga una pregunta técnica..."></textarea>
+            <input type="file" name="image" accept="image/*" capture="environment">
+            <button type="submit" style="width:100%">ENVIAR A ASESOR IA</button>
         </form>
-        <div id="advResponse" class="result-box">Esperando consulta...</div>
-    </section>
+        <div id="advResponse" style="padding:10px; border-radius:5px; border: 1px solid #ccc;"></div>
+    </fieldset>
 
     <script src="app.js"></script>
 </body>
