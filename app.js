@@ -1,67 +1,103 @@
 const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
-const i18n = {
-    en: {
-        header: "TECHNICAL ADVISORY DASHBOARD",
-        legal: "ADVISORY DISCLOSURE: SmartCargo AIPA provides independent quality audits. We are not a Forwarder, TSA, or IATA authority. Final cargo validation is reserved for licensed carriers.",
-        step1: "1. DATA AUDIT",
-        step2: "2. VISUAL ADVISOR (3 PHOTOS MAX)",
-        issue: "TECHNICAL IRREGULARITY",
-        remedy: "SUGGESTED REMEDIATION"
+const texts = {
+    es: { 
+        pay: "PAGAR Y ACTIVAR", val: "EJECUTAR AUDITORÍA", 
+        wait: "Procesando...", limit: "Límite alcanzado.",
+        res: "Resultado:"
     },
-    es: {
-        header: "PANEL DE ASESORÍA TÉCNICA",
-        legal: "AVISO PROFESIONAL: SmartCargo AIPA provee auditorías de calidad independientes. No somos Forwarder, TSA, ni autoridad IATA. La validación final está reservada para transportistas autorizados.",
-        step1: "1. AUDITORÍA DE DATOS",
-        step2: "2. ASESOR VISUAL (MÁX. 3 FOTOS)",
-        issue: "IRREGULARIDAD TÉCNICA",
-        remedy: "REMEDIACIÓN SUGERIDA"
+    en: { 
+        pay: "PAY AND ACTIVATE", val: "RUN AUDIT", 
+        wait: "Processing...", limit: "Limit reached.",
+        res: "Result:"
     }
 };
 
-function setLanguage(lang) {
-    localStorage.setItem("lang", lang);
-    const d = i18n[lang];
-    document.getElementById("mainHeader").innerText = d.header;
-    document.getElementById("disclaimer").innerText = d.legal;
-    // ... apply translations to other labels
+function changeLang(l) {
+    localStorage.setItem("lang", l);
+    location.reload();
 }
 
-// Visual Audit with Photo Limit
-document.getElementById("advForm").onsubmit = async (e) => {
-    e.preventDefault();
-    const out = document.getElementById("advResponse");
-    const lang = localStorage.getItem("lang") || "en";
-    out.innerText = lang === 'en' ? "Analyzing..." : "Analizando...";
+async function handlePayment() {
+    const awb = document.getElementsByName("awb")[0]?.value || "000";
+    const amount = document.getElementById("priceSelect")?.value || "10";
+    const pass = prompt("ADMIN PASSWORD:");
 
-    const fd = new FormData(e.target);
-    fd.append("awb", document.getElementById("awbInput").value);
+    const formData = new URLSearchParams({ amount, awb });
+    if (pass) formData.append("password", pass);
 
-    const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+    const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body: formData });
     const data = await res.json();
+    if (data.url) window.location.href = data.url;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const lang = localStorage.getItem("lang") || "es";
+    const params = new URLSearchParams(window.location.search);
     
-    out.innerHTML = `<div class="p-4 bg-gray-50 border-l-4 border-blue-600 font-sans text-sm">${data.data}</div>`;
-    if(data.remaining !== undefined) {
-        document.getElementById("counter").innerText = `Photos left: ${data.remaining}`;
+    // 1. Traducir botones
+    if(document.getElementById("payBtn")) document.getElementById("payBtn").innerText = texts[lang].pay;
+    if(document.getElementById("valBtn")) document.getElementById("valBtn").innerText = texts[lang].val;
+
+    // 2. Verificar Acceso (Stripe o Pass)
+    if (params.get("access") === "granted" || localStorage.getItem("smartcargo_auth") === "true") {
+        localStorage.setItem("smartcargo_auth", "true");
+        const vBtn = document.getElementById("valBtn");
+        if(vBtn) {
+            vBtn.disabled = false;
+            vBtn.classList.remove("btn-disabled");
+        }
     }
-};
 
-// Data Audit with 2-Point Limit
-document.getElementById("auditForm").onsubmit = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const res = await fetch(`${BASE_URL}/audit-basic`, { method: "POST", body: fd });
-    const data = await res.json();
-    
-    const lang = localStorage.getItem("lang") || "en";
-    const reportHtml = data.reports.map(r => `
-        <div class="mb-4 p-3 bg-white border border-gray-200 shadow-sm">
-            <p class="text-xs font-bold text-red-600 uppercase">${i18n[lang].issue}</p>
-            <p class="text-sm mb-2">${r.issue}</p>
-            <p class="text-xs font-bold text-green-700 uppercase border-t pt-1">${i18n[lang].remedy}</p>
-            <p class="text-sm italic font-semibold">${r.suggestion}</p>
-        </div>
-    `).join("");
-    
-    document.getElementById("reportContainer").innerHTML = reportHtml;
-};
+    // 3. Evento de Auditoría
+    const auditForm = document.getElementById("auditForm");
+    if(auditForm) {
+        auditForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                awb: document.getElementsByName("awb")[0].value,
+                length: parseFloat(document.getElementById("length").value),
+                width: parseFloat(document.getElementById("width").value),
+                height: parseFloat(document.getElementById("height").value),
+                weight: parseFloat(document.getElementById("weight").value),
+                ispm15_seal: document.getElementById("ispm").value,
+                unit_system: document.getElementById("unit").value
+            };
+
+            const res = await fetch(`${BASE_URL}/cargas`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            document.getElementById("auditResponse").innerHTML = `
+                <b>${texts[lang].res}</b> ${result.score}% riesgo<br>
+                <small>${result.alerts.join(", ")}</small>
+            `;
+        };
+    }
+
+    // 4. Evento IA Asesor
+    const advForm = document.getElementById("advForm");
+    let qCount = parseInt(localStorage.getItem("qCount") || "0");
+
+    if(advForm) {
+        advForm.onsubmit = async (e) => {
+            e.preventDefault();
+            if (qCount >= 3) return alert(texts[lang].limit);
+
+            const out = document.getElementById("advResponse");
+            out.innerText = texts[lang].wait;
+
+            const fd = new FormData(advForm);
+            const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+            const data = await res.json();
+            
+            out.innerText = data.data;
+            qCount++;
+            localStorage.setItem("qCount", qCount);
+        };
+    }
+
+    document.getElementById("payBtn").onclick = handlePayment;
+});
