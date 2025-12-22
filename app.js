@@ -37,10 +37,24 @@ async function handleCargoValidation(e) {
     const formData = new FormData(e.target);
     const cargoData = Object.fromEntries(formData);
     
-    // Convertir números
-    for (let key in cargoData) {
-        if (!isNaN(cargoData[key]) && cargoData[key] !== "") cargoData[key] = Number(cargoData[key]);
-    }
+    // Opcional: Pedir email para el reporte
+    const userEmail = prompt("¿A qué email enviamos el reporte de cumplimiento?");
+    if (userEmail) cargoData.email = userEmail;
+
+    try {
+        const response = await fetch(`${BASE_URL}/cargas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cargoData)
+        });
+        const result = await response.json();
+        
+        // Mostrar resultados en pantalla
+        document.getElementById("alertaScoreDisplay").innerText = `${result.alertaScore}% RISK`;
+        alert(userEmail ? "Auditoría completada. Reporte enviado a su correo." : "Auditoría completada.");
+        
+    } catch (err) { alert("Error en la validación"); }
+}
 
     try {
         const response = await fetch(`${BASE_URL}/cargas`, {
