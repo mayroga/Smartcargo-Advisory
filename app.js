@@ -36,7 +36,49 @@ const langDict = {
         qText: "Queries"
     }
 };
+const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
+async function handlePaymentClick() {
+    const amount = 65; // Precio Profesional
+    const description = "SmartCargo Professional Tier";
+    
+    // Preguntar por credenciales para Bypass
+    const user = prompt("Admin User (Deje en blanco para pagar):");
+    let pass = null;
+    if (user) {
+        pass = prompt("Admin Password:");
+    }
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('amount', amount);
+        formData.append('description', description);
+        if (user && pass) {
+            formData.append('user', user);
+            formData.append('password', pass);
+        }
+
+        const response = await fetch(`${BASE_URL}/create-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        if (result.url) {
+            window.location.href = result.url;
+        } else {
+            alert("Error al procesar el acceso.");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Fallo en la conexión con el servidor.");
+    }
+}
+
+// Asegúrate de vincular el botón en el DOM
+document.getElementById('paymentButton').addEventListener('click', handlePaymentClick);
 function changeLang(lang) {
     localStorage.setItem("lang", lang);
     const d = langDict[lang];
