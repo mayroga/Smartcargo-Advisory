@@ -2,14 +2,16 @@ const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
 const texts = {
     es: { 
-        pay: "PAGAR Y ACTIVAR", val: "EJECUTAR AUDITORÍA", 
-        wait: "Procesando...", limit: "Límite alcanzado.",
-        res: "Resultado:"
+        title: "SmartCargo 360", 
+        pay: "ACTIVAR ASESORÍA", 
+        val: "VERIFICAR CUMPLIMIENTO",
+        legal: "ADVERTENCIA: SOLO ASESORÍA TÉCNICA. NO SOMOS TSA/FORWARDER. NO MANIPULAMOS CARGA."
     },
     en: { 
-        pay: "PAY AND ACTIVATE", val: "RUN AUDIT", 
-        wait: "Processing...", limit: "Limit reached.",
-        res: "Result:"
+        title: "SmartCargo 360", 
+        pay: "ACTIVATE ADVISORY", 
+        val: "VERIFY COMPLIANCE",
+        legal: "WARNING: TECHNICAL ADVISORY ONLY. NOT TSA/FORWARDER. WE DO NOT HANDLE CARGO."
     }
 };
 
@@ -18,86 +20,55 @@ function changeLang(l) {
     location.reload();
 }
 
-async function handlePayment() {
-    const awb = document.getElementsByName("awb")[0]?.value || "000";
-    const amount = document.getElementById("priceSelect")?.value || "10";
-    const pass = prompt("ADMIN PASSWORD:");
-
-    const formData = new URLSearchParams({ amount, awb });
-    if (pass) formData.append("password", pass);
-
-    const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body: formData });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
     const lang = localStorage.getItem("lang") || "es";
+    document.getElementById("legalBanner").innerText = texts[lang].legal;
+    document.getElementById("payBtn").innerText = texts[lang].pay;
+    document.getElementById("valBtn").innerText = texts[lang].val;
+
     const params = new URLSearchParams(window.location.search);
-    
-    // 1. Traducir botones
-    if(document.getElementById("payBtn")) document.getElementById("payBtn").innerText = texts[lang].pay;
-    if(document.getElementById("valBtn")) document.getElementById("valBtn").innerText = texts[lang].val;
+    if (params.get("access") === "granted") localStorage.setItem("smartcargo_auth", "true");
 
-    // 2. Verificar Acceso (Stripe o Pass)
-    if (params.get("access") === "granted" || localStorage.getItem("smartcargo_auth") === "true") {
-        localStorage.setItem("smartcargo_auth", "true");
-        const vBtn = document.getElementById("valBtn");
-        if(vBtn) {
-            vBtn.disabled = false;
-            vBtn.classList.remove("btn-disabled");
-        }
+    if (localStorage.getItem("smartcargo_auth") === "true") {
+        document.getElementById("valBtn").disabled = false;
+        document.getElementById("valBtn").classList.remove("btn-disabled");
     }
 
-    // 3. Evento de Auditoría
-    const auditForm = document.getElementById("auditForm");
-    if(auditForm) {
-        auditForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const payload = {
-                awb: document.getElementsByName("awb")[0].value,
-                length: parseFloat(document.getElementById("length").value),
-                width: parseFloat(document.getElementById("width").value),
-                height: parseFloat(document.getElementById("height").value),
-                weight: parseFloat(document.getElementById("weight").value),
-                ispm15_seal: document.getElementById("ispm").value,
-                unit_system: document.getElementById("unit").value
-            };
+    // AUDITORÍA DE RIESGOS POR COLORES
+    document.getElementById("auditForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const res = await fetch(`${BASE_URL}/cargas`, { method: "POST", body: fd });
+        const data = await res.json();
+        
+        const out = document.getElementById("auditResponse");
+        out.innerHTML = "<h4>RESULTADO DE ASESORÍA:</h4>";
+        data.forEach(item => {
+            out.innerHTML += `<div class="risk-box risk-${item.level}">${item.msg}</div>`;
+        });
+    };
 
-            const res = await fetch(`${BASE_URL}/cargas`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json();
-            document.getElementById("auditResponse").innerHTML = `
-                <b>${texts[lang].res}</b> ${result.score}% riesgo<br>
-                <small>${result.alerts.join(", ")}</small>
-            `;
-        };
-    }
-
-    // 4. Evento IA Asesor
-    const advForm = document.getElementById("advForm");
-    let qCount = parseInt(localStorage.getItem("qCount") || "0");
-
-    if(advForm) {
-        advForm.onsubmit = async (e) => {
-            e.preventDefault();
-            if (qCount >= 3) return alert(texts[lang].limit);
-
-            const out = document.getElementById("advResponse");
-            out.innerText = texts[lang].wait;
-
-            const fd = new FormData(advForm);
-            const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
-            const data = await res.json();
-            
-            out.innerText = data.data;
-            qCount++;
-            localStorage.setItem("qCount", qCount);
-        };
-    }
-
-    document.getElementById("payBtn").onclick = handlePayment;
+    // ASESOR IA (FOTO Y TEXTO)
+    document.getElementById("advForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const out = document.getElementById("advResponse");
+        out.innerText = "Consultando base de datos IATA/TSA...";
+        const fd = new FormData(e.target);
+        const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+        const data = await res.json();
+        out.innerText = data.data;
+    };
 });
+
+async function handlePayment() {
+    const fd = new FormData();
+    fd.append("awb", document.getElementsByName("awb")[0].value || "000");
+    fd.append("amount", document.getElementById("priceSelect").value);
+    const pass = prompt("ADMIN PASS:");
+    if(pass) fd.append("password", pass);
+
+    const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body: fd });
+    const data = await res.json();
+    if(data.url) window.location.href = data.url;
+}
+document.getElementById("payBtn").onclick = handlePayment;
