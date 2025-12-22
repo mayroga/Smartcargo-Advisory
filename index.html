@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo AIPA - Expert Advisory</title>
+    <title>SmartCargo AIPA - Expert Advisor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .risk-glow { text-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .btn-disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100 font-sans leading-normal">
 
-    <nav class="bg-slate-900 text-white p-4 shadow-lg">
+    <nav class="bg-slate-900 text-white p-4 shadow-xl">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 id="navTitle" class="text-xl font-bold tracking-tighter italic">SMARTCARGO AIPA</h1>
+            <h1 id="navTitle" class="text-xl font-black italic tracking-tighter">SMARTCARGO AIPA</h1>
             <div class="flex space-x-2">
                 <button onclick="changeLang('es')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-black">ESPAÑOL</button>
                 <button onclick="changeLang('en')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-black">ENGLISH</button>
@@ -19,79 +23,88 @@
         </div>
     </nav>
 
-    <main class="container mx-auto p-4 max-w-5xl">
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-3 mb-6 rounded shadow-sm">
-            <p id="legalText" class="text-[10px] text-amber-800 italic">
-                <strong>AVISO:</strong> SmartCargo AIPA es un servicio de asesoría técnica informativa. No realizamos inspecciones físicas, traslados ni pesajes. La responsabilidad final es del expedidor/aerolínea.
+    <main class="container mx-auto p-4 max-w-6xl mt-2">
+        <div class="bg-amber-50 border-l-4 border-amber-600 p-3 mb-6 shadow-sm">
+            <p id="legalText" class="text-[10px] text-amber-900 leading-tight">
+                <strong>AVISO LEGAL:</strong> SmartCargo AIPA es un servicio de asesoría técnica preventiva. No realizamos inspecciones físicas ni certificaciones. La responsabilidad final es del expedidor.
             </p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-6">
-            <section class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <h2 id="section1Title" class="font-bold text-blue-900 mb-4 border-b pb-2">AUDITORÍA DE RIESGO</h2>
-                
+        <div class="grid md:grid-cols-2 gap-8">
+            <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                <h2 id="sec1Title" class="font-bold text-slate-800 mb-6 border-b pb-2 uppercase tracking-wide">Validación de Riesgo</h2>
                 <form id="cargoForm" class="space-y-4">
-                    <input type="text" name="awb" placeholder="AWB (Ej: 023-12345678)" class="w-full p-2 border rounded text-sm" required>
+                    <input type="text" name="awb" placeholder="AWB Number" class="w-full p-3 border rounded-lg text-sm bg-gray-50" required>
                     
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="number" name="length_cm" placeholder="Largo/L (cm)" class="p-2 border rounded text-xs" required>
-                        <input type="number" name="width_cm" placeholder="Ancho/W (cm)" class="p-2 border rounded text-xs" required>
-                        <input type="number" name="height_cm" placeholder="Alto/H (cm)" class="p-2 border rounded text-xs" required>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="number" name="length_cm" placeholder="L (cm)" class="p-3 border rounded-lg text-sm" required>
+                        <input type="number" name="width_cm" placeholder="W (cm)" class="p-3 border rounded-lg text-sm" required>
+                        <input type="number" name="height_cm" placeholder="H (cm)" class="p-3 border rounded-lg text-sm" required>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" name="weight_declared" placeholder="Peso Real/Weight (kg)" class="p-2 border rounded text-xs" required>
-                        <select name="dg_type" class="p-2 border rounded text-xs bg-gray-50">
-                            <option value="NONE">Carga General</option>
-                            <option value="DANGEROUS">Mercancía Peligrosa (DG)</option>
-                            <option value="PERISHABLE">Perecederos</option>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" name="weight_declared" placeholder="Weight (kg)" class="p-3 border rounded-lg text-sm" required>
+                        <select name="dg_type" class="p-3 border rounded-lg text-sm bg-blue-50">
+                            <option value="NONE">General Cargo</option>
+                            <option value="DANGEROUS">Dangerous Goods</option>
+                            <option value="PERISHABLE">Perishable</option>
                         </select>
                     </div>
 
-                    <select name="ispm15_seal" class="w-full p-2 border rounded text-xs">
-                        <option value="YES">Sello ISPM-15 Presente</option>
+                    <select name="ispm15_seal" class="w-full p-3 border rounded-lg text-sm">
+                        <option value="YES">Sello ISPM-15 Presente (Madera)</option>
                         <option value="NO">SIN Sello ISPM-15 (Madera)</option>
+                        <option value="EXEMPT">Exento (Plástico/Metal/Cartón)</option>
                     </select>
 
-                    <div class="bg-green-50 p-3 rounded-lg">
-                        <label id="priceLabel" class="block text-[10px] font-bold text-green-700 mb-1 uppercase">Seleccione Nivel de Servicio:</label>
-                        <select id="priceSelect" class="w-full p-2 border-green-200 border rounded text-sm font-bold text-green-800">
-                            <option value="25">Paquete Pequeño/Courier - $25.00</option>
-                            <option value="45">Carga Estándar/Paletizado - $45.00</option>
-                            <option value="85">Carga Especial/DG/Animales - $85.00</option>
+                    <div class="p-4 bg-green-50 rounded-xl border border-green-200">
+                        <label id="priceLabel" class="block text-[10px] font-bold text-green-700 mb-2 uppercase">Tipo de Carga / Tarifa:</label>
+                        <select id="priceSelect" class="w-full p-2 border-green-300 border rounded font-bold text-green-800">
+                            <option value="25">Courier / Small Box - $25.00</option>
+                            <option value="45">Standard Cargo / Pallet - $45.00</option>
+                            <option value="85">Special / DG / Oversized - $85.00</option>
                         </select>
                     </div>
 
-                    <button type="button" id="payBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">PAGAR Y ACTIVAR VALIDACIÓN</button>
-                    <button type="submit" id="valBtn" disabled class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold opacity-50 cursor-not-allowed">EJECUTAR AUDITORÍA TÉCNICA</button>
+                    <button type="button" id="payBtn" class="w-full bg-green-600 text-white py-4 rounded-xl font-black hover:bg-green-700 transition shadow-lg">PAGAR Y ACTIVAR</button>
+                    <button type="submit" id="valBtn" disabled class="w-full bg-blue-600 text-white py-4 rounded-xl font-black btn-disabled">EJECUTAR AUDITORÍA</button>
                 </form>
 
-                <div id="riskResult" class="mt-6 text-center hidden">
-                    <div id="riskScore" class="text-4xl font-black mb-2">0%</div>
-                    <div id="volData" class="text-[11px] text-gray-500 mb-2"></div>
-                    <div id="riskAlerts" class="text-xs text-left text-red-600 space-y-1"></div>
+                <div id="riskDisplay" class="mt-8 text-center hidden p-4 border-t">
+                    <div id="riskScore" class="text-5xl font-black risk-glow">0%</div>
+                    <div id="volData" class="text-xs text-slate-500 font-mono mt-2"></div>
+                    <div id="riskAlerts" class="mt-4 text-left text-xs text-red-600 space-y-2"></div>
                 </div>
             </section>
 
-            <section class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <h2 id="section2Title" class="font-bold text-blue-900 mb-4 border-b pb-2">CONSULTORÍA IA & VISIÓN</h2>
+            <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center mb-6 border-b pb-2">
+                    <h2 id="sec2Title" class="font-bold text-slate-800 uppercase tracking-wide">Asesor IA & Visión</h2>
+                    <span id="queryCounter" class="bg-slate-100 text-[10px] px-2 py-1 rounded-full font-bold">CONSULTAS: 0/3</span>
+                </div>
+                
                 <form id="advForm" class="space-y-4">
-                    <textarea id="advPrompt" placeholder="Describa su duda o suba una foto del embalaje/etiquetas..." class="w-full p-3 border rounded-lg h-32 text-sm"></textarea>
+                    <textarea id="advPrompt" placeholder="Duda técnica o análisis de foto..." class="w-full p-4 border rounded-xl h-36 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                     
-                    <label class="flex items-center justify-center border-2 border-dashed p-4 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <i class="fa-solid fa-camera mr-2 text-blue-600"></i>
-                        <span id="photoLabel" class="text-xs">Subir foto de la carga</span>
+                    <label class="flex items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                        <i class="fa-solid fa-camera mr-3 text-blue-600 text-xl"></i>
+                        <span id="photoLabel" class="text-xs font-bold text-slate-600 uppercase">Subir foto de carga / etiquetas</span>
                         <input type="file" id="cargoImg" accept="image/*" class="hidden">
                     </label>
 
-                    <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold hover:bg-black transition uppercase text-sm tracking-wider">Consultar Asesor Experto</button>
+                    <button type="submit" id="advBtn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition shadow-lg uppercase text-sm">Consultar Asesor</button>
                 </form>
-                <div id="advResponse" class="mt-4 p-4 bg-blue-50 rounded-lg text-xs italic border border-blue-100 min-h-[150px] text-gray-700 leading-relaxed">
-                    Listo para asesorarle...
+
+                <div id="advResponse" class="mt-6 p-5 bg-blue-50 rounded-xl text-xs italic border border-blue-100 min-h-[200px] text-slate-700 leading-relaxed overflow-y-auto">
+                    A la espera de su consulta técnica...
                 </div>
             </section>
         </div>
     </main>
+
+    <footer class="mt-12 py-10 bg-slate-900 text-white text-center">
+        <p class="text-[10px] opacity-50 uppercase tracking-widest px-6">SmartCargo AIPA - Information & Advisory Only - Bilingüe Nativo</p>
+    </footer>
 
     <script src="app.js"></script>
 </body>
