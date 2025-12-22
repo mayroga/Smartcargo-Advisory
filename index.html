@@ -1,85 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SmartCargo AIPA Advisor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo AIPA - Advisor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        .btn-disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-box { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 10px; color: #333; }
+        .lang-switch { position: absolute; top: 10px; right: 10px; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white p-5 font-sans">
+<body>
 
-    <div class="flex justify-end gap-2 mb-5">
-        <button onclick="changeLang('en')" class="bg-blue-600 px-3 py-1 rounded text-xs">ENGLISH</button>
-        <button onclick="changeLang('es')" class="bg-red-600 px-3 py-1 rounded text-xs">ESPAÑOL</button>
+    <div class="lang-switch">
+        <button onclick="changeLang('es')">ES</button>
+        <button onclick="changeLang('en')">EN</button>
     </div>
 
-    <h1 id="title" class="text-2xl font-bold mb-2 text-yellow-500 underline">SMARTCARGO AIPA | ADVISOR</h1>
-    <p id="legal" class="text-xs text-gray-400 mb-5 uppercase font-bold border p-2">ADVISORY ONLY: WE ARE NOT TSA, IATA OR FORWARDERS. TECHNICAL SUGGESTIONS ONLY.</p>
+    <h1>SmartCargo Consulting</h1>
 
-    <div class="bg-gray-800 p-4 rounded-lg border-2 border-yellow-600">
-        <label id="label-photo" class="block mb-2 text-sm font-bold">STEP 1: UPLOAD PHOTO (MAX 3)</label>
-        <input type="file" id="photo" class="mb-4 text-sm">
+    <section>
+        <h3>1. Activación de Servicio</h3>
+        <label>AWB / Guía:</label>
+        <input type="text" name="awb" placeholder="Ej: 123-4567890">
         
-        <label id="label-query" class="block mb-2 text-sm font-bold">STEP 2: TECHNICAL QUERY</label>
-        <textarea id="prompt" class="w-full p-2 text-black rounded" placeholder="Example: Stacking risk on this skid?"></textarea>
+        <label>Plan:</label>
+        <select id="priceSelect">
+            <option value="10">Básico ($10 USD)</option>
+            <option value="25">Premium ($25 USD)</option>
+        </select>
         
-        <button onclick="runAdvisor()" id="btn-run" class="w-full bg-yellow-600 py-3 mt-4 font-black hover:bg-yellow-500">EXECUTE ADVISORY</button>
-    </div>
+        <button id="payBtn">PAGAR Y ACTIVAR</button>
+    </section>
 
-    <div id="response" class="mt-5 p-4 bg-black border-l-4 border-yellow-500 text-sm italic"></div>
+    <hr>
 
-    <script>
-        let photoCount = 0;
-        const texts = {
-            en: {
-                title: "SMARTCARGO AIPA | TECHNICAL ADVISOR",
-                legal: "ADVISORY ONLY: WE ARE NOT TSA, IATA OR FORWARDERS. TECHNICAL SUGGESTIONS ONLY.",
-                photo: "STEP 1: UPLOAD PHOTO (MAX 3)",
-                query: "STEP 2: TECHNICAL QUERY",
-                btn: "EXECUTE ADVISORY",
-                limit: "LIMIT REACHED: 3 photos max per session.",
-                wait: "Analyzing and suggesting..."
-            },
-            es: {
-                title: "SMARTCARGO AIPA | ASESOR TÉCNICO",
-                legal: "SOLO ASESORÍA: NO SOMOS TSA, IATA NI FORWARDERS. SOLO SUGERENCIAS TÉCNICAS.",
-                photo: "PASO 1: SUBIR FOTO (MÁX 3)",
-                query: "PASO 2: CONSULTA TÉCNICA",
-                btn: "EJECUTAR ASESORÍA",
-                limit: "LÍMITE ALCANZADO: Máximo 3 fotos por sesión.",
-                wait: "Analizando y sugiriendo..."
-            }
-        };
-
-        function changeLang(lang) {
-            const d = texts[lang];
-            document.getElementById("title").innerText = d.title;
-            document.getElementById("legal").innerText = d.legal;
-            document.getElementById("label-photo").innerText = d.photo;
-            document.getElementById("label-query").innerText = d.query;
-            document.getElementById("btn-run").innerText = d.btn;
-            localStorage.setItem("selectedLang", lang);
-        }
-
-        async function runAdvisor() {
-            if (photoCount >= 3) {
-                alert(texts[localStorage.getItem("selectedLang") || "en"].limit);
-                return;
-            }
-
-            const out = document.getElementById("response");
-            out.innerText = texts[localStorage.getItem("selectedLang") || "en"].wait;
-
-            const fd = new FormData();
-            fd.append("prompt", document.getElementById("prompt").value);
-            const fileInput = document.getElementById("photo");
-            if (fileInput.files[0]) fd.append("image", fileInput.files[0]);
-
-            const res = await fetch("https://smartcargo-aipa.onrender.com/advisory", { method: "POST", body: fd });
-            const data = await res.json();
+    <section>
+        <h3>2. Auditoría Técnica AIPA</h3>
+        <form id="auditForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="number" id="length" placeholder="Largo" required step="0.1">
+                <input type="number" id="width" placeholder="Ancho" required step="0.1">
+                <input type="number" id="height" placeholder="Alto" required step="0.1">
+                <input type="number" id="weight" placeholder="Peso" required step="0.1">
+            </div>
             
-            out.innerHTML = `<strong>SUGGESTIONS:</strong><br>${data.data}`;
-            photoCount++;
-        }
-    </script>
+            <label>Sistema:</label>
+            <select id="unit">
+                <option value="cm">Métrico (cm/kg)</option>
+                <option value="in">Imperial (in/lb)</option>
+            </select>
+
+            <label>¿Tiene Sello ISPM-15?</label>
+            <select id="ispm">
+                <option value="SI">SÍ</option>
+                <option value="NO">NO</option>
+            </select>
+
+            <button id="valBtn" type="submit" disabled class="btn-disabled">EJECUTAR AUDITORÍA</button>
+        </form>
+        <div id="auditResponse" class="result-box">Los resultados aparecerán aquí.</div>
+    </section>
+
+    <hr>
+
+    <section>
+        <h3>3. Asesor IA (Soluciones Logísticas)</h3>
+        <form id="advForm">
+            <textarea id="advPrompt" name="prompt" placeholder="Pregunta sobre regulaciones, embalaje o rutas..." required></textarea>
+            <label>Foto de la carga (Opcional - Máx 3 por pago):</label>
+            <input type="file" id="cargoImg" name="image" accept="image/*">
+            <button type="submit">Consultar Asesor</button>
+        </form>
+        <div id="advResponse" class="result-box">Esperando consulta...</div>
+    </section>
+
+    <script src="app.js"></script>
 </body>
 </html>
