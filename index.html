@@ -1,111 +1,85 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo AIPA - Logistics Bridge</title>
+    <title>SmartCargo AIPA Advisor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>.btn-disabled { opacity: 0.4; pointer-events: none; }</style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
+<body class="bg-gray-900 text-white p-5 font-sans">
 
-    <nav class="bg-blue-900 text-white p-4 shadow-xl">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 id="navTitle" class="text-xl font-black italic">SMARTCARGO AIPA</h1>
-            <div class="flex space-x-2">
-                <button onclick="changeLang('es')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-blue-900 transition">ESPAÑOL</button>
-                <button onclick="changeLang('en')" class="text-[10px] border px-2 py-1 rounded hover:bg-white hover:text-blue-900 transition">ENGLISH</button>
-            </div>
-        </div>
-    </nav>
+    <div class="flex justify-end gap-2 mb-5">
+        <button onclick="changeLang('en')" class="bg-blue-600 px-3 py-1 rounded text-xs">ENGLISH</button>
+        <button onclick="changeLang('es')" class="bg-red-600 px-3 py-1 rounded text-xs">ESPAÑOL</button>
+    </div>
 
-    <main class="container mx-auto p-4 max-w-6xl">
+    <h1 id="title" class="text-2xl font-bold mb-2 text-yellow-500 underline">SMARTCARGO AIPA | ADVISOR</h1>
+    <p id="legal" class="text-xs text-gray-400 mb-5 uppercase font-bold border p-2">ADVISORY ONLY: WE ARE NOT TSA, IATA OR FORWARDERS. TECHNICAL SUGGESTIONS ONLY.</p>
+
+    <div class="bg-gray-800 p-4 rounded-lg border-2 border-yellow-600">
+        <label id="label-photo" class="block mb-2 text-sm font-bold">STEP 1: UPLOAD PHOTO (MAX 3)</label>
+        <input type="file" id="photo" class="mb-4 text-sm">
         
-        <section class="mb-8 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-600">
-            <h2 id="objTitle" class="text-blue-900 font-black text-lg mb-2 uppercase italic">Nuestro Objetivo / Our Mission</h2>
-            <p id="objText" class="text-sm text-slate-600 leading-relaxed">
-                SmartCargo AIPA nace para eliminar la incertidumbre en la cadena logística. Servimos como un <strong>puente de asesoría técnica</strong> entre el dueño de la carga, el forwarder, el transportista y la aerolínea, asegurando que todos hablen el mismo idioma técnico y eviten rechazos costosos mediante el cumplimiento preventivo de las normas IATA.
-            </p>
-        </section>
+        <label id="label-query" class="block mb-2 text-sm font-bold">STEP 2: TECHNICAL QUERY</label>
+        <textarea id="prompt" class="w-full p-2 text-black rounded" placeholder="Example: Stacking risk on this skid?"></textarea>
+        
+        <button onclick="runAdvisor()" id="btn-run" class="w-full bg-yellow-600 py-3 mt-4 font-black hover:bg-yellow-500">EXECUTE ADVISORY</button>
+    </div>
 
-        <div class="grid md:grid-cols-2 gap-8">
-            <section class="bg-white p-6 rounded-2xl shadow-lg">
-                <h2 id="sec1Title" class="font-bold text-blue-900 mb-6 border-b pb-2 uppercase italic">Auditoría Técnica</h2>
-                <form id="cargoForm" class="space-y-4">
-                    <input type="text" name="awb" placeholder="AWB (000-00000000)" class="w-full p-3 border rounded-xl bg-slate-50 text-sm">
-                    
-                    <div class="flex items-center space-x-4 mb-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Unidades / Units:</label>
-                        <select id="unitSelect" onchange="updateUnitPlaceholders()" class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded-full">
-                            <option value="cm">CM / KG</option>
-                            <option value="in">INCHES / LB</option>
-                        </select>
-                    </div>
+    <div id="response" class="mt-5 p-4 bg-black border-l-4 border-yellow-500 text-sm italic"></div>
 
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="number" name="length" id="inputL" placeholder="L" class="p-3 border rounded-xl text-sm">
-                        <input type="number" name="width" id="inputW" placeholder="W" class="p-3 border rounded-xl text-sm">
-                        <input type="number" name="height" id="inputH" placeholder="H" class="p-3 border rounded-xl text-sm">
-                    </div>
+    <script>
+        let photoCount = 0;
+        const texts = {
+            en: {
+                title: "SMARTCARGO AIPA | TECHNICAL ADVISOR",
+                legal: "ADVISORY ONLY: WE ARE NOT TSA, IATA OR FORWARDERS. TECHNICAL SUGGESTIONS ONLY.",
+                photo: "STEP 1: UPLOAD PHOTO (MAX 3)",
+                query: "STEP 2: TECHNICAL QUERY",
+                btn: "EXECUTE ADVISORY",
+                limit: "LIMIT REACHED: 3 photos max per session.",
+                wait: "Analyzing and suggesting..."
+            },
+            es: {
+                title: "SMARTCARGO AIPA | ASESOR TÉCNICO",
+                legal: "SOLO ASESORÍA: NO SOMOS TSA, IATA NI FORWARDERS. SOLO SUGERENCIAS TÉCNICAS.",
+                photo: "PASO 1: SUBIR FOTO (MÁX 3)",
+                query: "PASO 2: CONSULTA TÉCNICA",
+                btn: "EJECUTAR ASESORÍA",
+                limit: "LÍMITE ALCANZADO: Máximo 3 fotos por sesión.",
+                wait: "Analizando y sugiriendo..."
+            }
+        };
 
-                    <input type="number" name="weight" id="inputWeight" placeholder="Weight" class="w-full p-3 border rounded-xl text-sm">
+        function changeLang(lang) {
+            const d = texts[lang];
+            document.getElementById("title").innerText = d.title;
+            document.getElementById("legal").innerText = d.legal;
+            document.getElementById("label-photo").innerText = d.photo;
+            document.getElementById("label-query").innerText = d.query;
+            document.getElementById("btn-run").innerText = d.btn;
+            localStorage.setItem("selectedLang", lang);
+        }
 
-                    <select name="ispm15_seal" id="sealSelect" class="w-full p-3 border rounded-xl text-sm">
-                        <option value="YES">Sello ISPM-15 (Madera)</option>
-                        <option value="NO">SIN Sello (Madera - Riesgo)</option>
-                        <option value="EXEMPT">Exento (Plástico/Metal/Cartón)</option>
-                    </select>
+        async function runAdvisor() {
+            if (photoCount >= 3) {
+                alert(texts[localStorage.getItem("selectedLang") || "en"].limit);
+                return;
+            }
 
-                    <div class="p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
-                        <label id="priceLabel" class="text-[10px] font-bold text-slate-500 uppercase">Tarifa de Asesoría:</label>
-                        <select id="priceSelect" class="w-full p-2 mt-1 border rounded bg-white font-bold text-blue-900">
-                            <option value="25">Courier/Small - $25.00</option>
-                            <option value="45">Standard/Pallet - $45.00</option>
-                            <option value="85">Special/DG - $85.00</option>
-                        </select>
-                    </div>
+            const out = document.getElementById("response");
+            out.innerText = texts[localStorage.getItem("selectedLang") || "en"].wait;
 
-                    <button type="button" id="payBtn" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">PAGAR Y ACTIVAR</button>
-                    <button type="submit" id="valBtn" disabled class="w-full bg-blue-600 text-white py-4 rounded-xl font-black btn-disabled uppercase">Ejecutar Auditoría</button>
-                </form>
+            const fd = new FormData();
+            fd.append("prompt", document.getElementById("prompt").value);
+            const fileInput = document.getElementById("photo");
+            if (fileInput.files[0]) fd.append("image", fileInput.files[0]);
 
-                <div id="riskDisplay" class="mt-6 text-center hidden p-4 border-t">
-                    <div id="riskScore" class="text-5xl font-black mb-1">0%</div>
-                    <div id="volData" class="text-[10px] text-slate-500 font-mono italic"></div>
-                    <div id="riskAlerts" class="mt-4 text-left text-xs text-red-600 space-y-1"></div>
-                </div>
-            </section>
-
-            <section class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="sec2Title" class="font-bold text-blue-900 uppercase italic">Asesoría IA Vision</h2>
-                    <span id="qCount" class="bg-blue-100 text-blue-800 text-[10px] px-2 py-1 rounded-full font-bold uppercase">Consultas: 0/3</span>
-                </div>
-                
-                <form id="advForm" class="space-y-4">
-                    <textarea id="advPrompt" class="w-full p-4 border rounded-xl h-32 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    
-                    <label class="flex flex-col items-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-camera text-2xl text-blue-600 mb-2"></i>
-                        <span id="photoLabel" class="text-[10px] font-bold text-slate-500 uppercase">Subir foto de carga / etiquetas</span>
-                        <input type="file" id="cargoImg" accept="image/*" class="hidden">
-                    </label>
-
-                    <button type="submit" id="advBtn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-sm tracking-widest shadow-xl">Consultar</button>
-                </form>
-
-                <div id="advResponse" class="mt-6 p-4 bg-blue-50 rounded-xl text-[11px] italic border border-blue-100 min-h-[150px] leading-relaxed text-slate-700">
-                    A la espera de su consulta técnica...
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <footer class="mt-12 py-10 bg-blue-900 text-white text-center text-[10px] opacity-60 uppercase tracking-widest px-8">
-        SmartCargo AIPA &copy; 2024 - Information Only - Global Advisory Bridge
-    </footer>
-
-    <script src="app.js"></script>
+            const res = await fetch("https://smartcargo-aipa.onrender.com/advisory", { method: "POST", body: fd });
+            const data = await res.json();
+            
+            out.innerHTML = `<strong>SUGGESTIONS:</strong><br>${data.data}`;
+            photoCount++;
+        }
+    </script>
 </body>
 </html>
