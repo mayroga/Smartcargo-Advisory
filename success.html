@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo-AIPA | Acceso Concedido</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f9; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .success-card { max-width: 500px; text-align: center; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white; }
+        .icon-circle { width: 80px; height: 80px; background: #28a745; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 20px; }
+    </style>
+</head>
+<body>
+
+<div class="success-card">
+    <div class="icon-circle">✓</div>
+    <h2 id="statusTitle">¡Pago Confirmado!</h2>
+    <p class="text-muted" id="statusMsg">Tu carga ha sido validada y el acceso premium está activo.</p>
+    <hr>
+    
+    <div id="premiumActions">
+        <button onclick="generatePDF()" class="btn btn-primary btn-lg w-100 mb-3">📄 Descargar Reporte de Auditoría (PDF)</button>
+        <a href="index.html" class="btn btn-outline-secondary w-100">Volver a la Consola AIPA</a>
+    </div>
+</div>
+
+<script>
+    // Detectar si es Admin Bypass o Pago Stripe
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.has('access') || params.get('simulated') === 'true') {
+        document.getElementById('statusTitle').innerText = "Acceso Autorizado";
+        document.getElementById('statusMsg').innerText = "Modo Administrador / VIP activado.";
+        document.getElementById('statusTitle').style.color = "#004c99";
+    }
+
+    async function generatePDF() {
+        alert("Generando PDF de auditoría con SmartCargo-AIPA... (Integrando con el Backend)");
+        // Aquí llamarás a tu ruta de backend /save-analysis para descargar el PDF
+    }
+</script>
+
+</body>
+</html>
