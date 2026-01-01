@@ -1,79 +1,50 @@
 const BASE_URL = "https://smartcargo-aipa.onrender.com";
 
-const texts = {
-    es: { 
-        title: "SmartCargo 360", 
-        pay: "ACTIVAR ASESORÍA", 
-        val: "VERIFICAR CUMPLIMIENTO",
-        consulting: "Consultando base de datos IATA/TSA..."
-    },
-    en: { 
-        title: "SmartCargo 360", 
-        pay: "ACTIVATE ADVISORY", 
-        val: "VERIFY COMPLIANCE",
-        consulting: "Consulting IATA/TSA database..."
-    }
-};
-
-function changeLang(l) {
-    localStorage.setItem("lang", l);
-    location.reload();
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    const lang = localStorage.getItem("lang") || "es";
-    
-    // Auth Check
+    // Verificación de Acceso
     const params = new URLSearchParams(window.location.search);
-    if (params.get("access") === "granted") localStorage.setItem("smartcargo_auth", "true");
-
-    if (localStorage.getItem("smartcargo_auth") === "true") {
-        const valBtn = document.getElementById("valBtn");
-        valBtn.disabled = false;
-        valBtn.classList.remove("btn-disabled");
+    if (params.get("access") === "granted" || localStorage.getItem("sc_auth") === "true") {
+        localStorage.setItem("sc_auth", "true");
+        document.getElementById("mainApp").style.opacity = "1";
+        document.getElementById("mainApp").style.pointer_events = "all";
     }
 
-    // 1. Auditoría de Riesgos (Backend Rules)
+    // Auditoría Rápida
     document.getElementById("auditForm").onsubmit = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
         const res = await fetch(`${BASE_URL}/cargas`, { method: "POST", body: fd });
         const data = await res.json();
-        
         const out = document.getElementById("auditResponse");
-        out.innerHTML = "<h4>DIAGNÓSTICO TÉCNICO:</h4>";
+        out.innerHTML = "<h4>DIAGNÓSTICO:</h4>";
         data.forEach(item => {
-            out.innerHTML += `
-                <div class="risk-box risk-${item.level}">
-                    <strong>${item.msg}</strong><br>
-                    <small>${item.desc}</small>
-                </div>`;
+            out.innerHTML += `<div class="risk-${item.lvl}"><strong>${item.msg}</strong><br>🛠️ SOLUCIÓN: ${item.sol}</div>`;
         });
     };
 
-    // 2. Asistente IA con Multi-Foto (Máximo 3)
+    // Asesor Virtual - Soluciones Rectificativas
     document.getElementById("advForm").onsubmit = async (e) => {
         e.preventDefault();
         const out = document.getElementById("advResponse");
-        out.innerText = texts[lang].consulting;
+        out.innerHTML = "<h4>🔍 CONSULTANDO PROTOCOLOS TSA/IATA...</h4>";
         
         const fd = new FormData(e.target);
         const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
         const data = await res.json();
-        out.innerText = data.data;
+        
+        out.innerHTML = `<div id="report"><h2 style="color:#01579b;">REPORTE DE ASESORÍA TÉCNICA</h2>${data.data}</div>`;
+        document.getElementById("actionBtns").style.display = "block";
     };
 });
 
-// 3. Manejo de Pago y Acceso Administrativo
 async function handlePayment() {
-    const fd = new FormData();
-    const awb = document.getElementsByName("awb")[0].value || "000";
+    const awb = document.getElementsByName("awb")[0].value;
     const amount = document.getElementById("priceSelect").value;
-    
-    const user = prompt("USUARIO ADMINISTRADOR:");
-    const pass = prompt("CONTRASEÑA:");
+    const user = prompt("ADMIN USER (Opcional):");
+    const pass = prompt("ADMIN PASS (Opcional):");
 
-    fd.append("awb", awb);
+    const fd = new FormData();
+    fd.append("awb", awb || "N/A");
     fd.append("amount", amount);
     if(user) fd.append("user", user);
     if(pass) fd.append("password", pass);
@@ -84,3 +55,13 @@ async function handlePayment() {
 }
 
 document.getElementById("payBtn").onclick = handlePayment;
+
+function downloadPDF() {
+    const element = document.getElementById("report");
+    html2pdf().from(element).save("SmartCargo_Reporte.pdf");
+}
+
+function shareWA() {
+    const text = document.getElementById("report").innerText;
+    window.open(`https://wa.me/?text=${encodeURIComponent("⭐ SOLUCIÓN SMARTCARGO:\n\n" + text)}`, '_blank');
+}
