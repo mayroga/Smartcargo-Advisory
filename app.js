@@ -5,13 +5,13 @@ const texts = {
         title: "SmartCargo 360", 
         pay: "ACTIVAR ASESORÍA", 
         val: "VERIFICAR CUMPLIMIENTO",
-        legal: "ADVERTENCIA: SOLO ASESORÍA TÉCNICA. NO SOMOS TSA/FORWARDER. NO MANIPULAMOS CARGA."
+        consulting: "Consultando base de datos IATA/TSA..."
     },
     en: { 
         title: "SmartCargo 360", 
         pay: "ACTIVATE ADVISORY", 
         val: "VERIFY COMPLIANCE",
-        legal: "WARNING: TECHNICAL ADVISORY ONLY. NOT TSA/FORWARDER. WE DO NOT HANDLE CARGO."
+        consulting: "Consulting IATA/TSA database..."
     }
 };
 
@@ -22,19 +22,18 @@ function changeLang(l) {
 
 document.addEventListener("DOMContentLoaded", () => {
     const lang = localStorage.getItem("lang") || "es";
-    document.getElementById("legalBanner").innerText = texts[lang].legal;
-    document.getElementById("payBtn").innerText = texts[lang].pay;
-    document.getElementById("valBtn").innerText = texts[lang].val;
-
+    
+    // Auth Check
     const params = new URLSearchParams(window.location.search);
     if (params.get("access") === "granted") localStorage.setItem("smartcargo_auth", "true");
 
     if (localStorage.getItem("smartcargo_auth") === "true") {
-        document.getElementById("valBtn").disabled = false;
-        document.getElementById("valBtn").classList.remove("btn-disabled");
+        const valBtn = document.getElementById("valBtn");
+        valBtn.disabled = false;
+        valBtn.classList.remove("btn-disabled");
     }
 
-    // AUDITORÍA DE RIESGOS POR COLORES
+    // 1. Auditoría de Riesgos (Backend Rules)
     document.getElementById("auditForm").onsubmit = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
@@ -42,17 +41,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         
         const out = document.getElementById("auditResponse");
-        out.innerHTML = "<h4>RESULTADO DE ASESORÍA:</h4>";
+        out.innerHTML = "<h4>DIAGNÓSTICO TÉCNICO:</h4>";
         data.forEach(item => {
-            out.innerHTML += `<div class="risk-box risk-${item.level}">${item.msg}</div>`;
+            out.innerHTML += `
+                <div class="risk-box risk-${item.level}">
+                    <strong>${item.msg}</strong><br>
+                    <small>${item.desc}</small>
+                </div>`;
         });
     };
 
-    // ASESOR IA (FOTO Y TEXTO)
+    // 2. Asistente IA con Multi-Foto (Máximo 3)
     document.getElementById("advForm").onsubmit = async (e) => {
         e.preventDefault();
         const out = document.getElementById("advResponse");
-        out.innerText = "Consultando base de datos IATA/TSA...";
+        out.innerText = texts[lang].consulting;
+        
         const fd = new FormData(e.target);
         const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
         const data = await res.json();
@@ -60,15 +64,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 });
 
+// 3. Manejo de Pago y Acceso Administrativo
 async function handlePayment() {
     const fd = new FormData();
-    fd.append("awb", document.getElementsByName("awb")[0].value || "000");
-    fd.append("amount", document.getElementById("priceSelect").value);
-    const pass = prompt("ADMIN PASS:");
+    const awb = document.getElementsByName("awb")[0].value || "000";
+    const amount = document.getElementById("priceSelect").value;
+    
+    const user = prompt("USUARIO ADMINISTRADOR:");
+    const pass = prompt("CONTRASEÑA:");
+
+    fd.append("awb", awb);
+    fd.append("amount", amount);
+    if(user) fd.append("user", user);
     if(pass) fd.append("password", pass);
 
     const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body: fd });
     const data = await res.json();
     if(data.url) window.location.href = data.url;
 }
+
 document.getElementById("payBtn").onclick = handlePayment;
