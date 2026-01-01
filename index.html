@@ -3,65 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo Advisor</title>
+    <title>SmartCargo Advisor 360°</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        .risk-high { background: #d32f2f; color: white; padding: 10px; margin: 5px; border-radius: 5px; border-left: 10px solid black; }
-        .risk-medium { background: #ef6c00; color: white; padding: 10px; margin: 5px; border-radius: 5px; }
-        #legalBanner { background: #000; color: #ffeb3b; padding: 15px; font-weight: bold; text-align: center; font-size: 0.9em; border: 2px solid yellow; }
+        .risk-high { background: #ffebee; color: #b71c1c; border-left: 10px solid #b71c1c; padding: 15px; margin: 10px 0; }
+        .risk-medium { background: #fff3e0; color: #e65100; border-left: 10px solid #e65100; padding: 15px; margin: 10px 0; }
+        #legalHeader { background: #000; color: #ffd600; padding: 10px; text-align: center; font-weight: bold; }
+        .btn-sol { background: #2e7d32; color: white; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="legalBanner"></div>
+    <div id="legalHeader">ASESORÍA TÉCNICA PREVENTIVA (NO SOMOS AGENCIA REGULADORA)</div>
 
-    <div style="text-align: right; margin-top: 10px;">
-        <button onclick="changeLang('es')">ES</button> <button onclick="changeLang('en')">EN</button>
-    </div>
-
-    <h1>SmartCargo Advisor 360°</h1>
-
-    <fieldset>
-        <legend>1. Acceso al Sistema</legend>
-        <input type="text" name="awb" placeholder="Guía Aérea (AWB)">
+    <section id="access">
+        <h3>1. Activación de Servicio</h3>
+        <input type="text" name="awb" placeholder="Guía Aérea (AWB) o Referencia">
         <select id="priceSelect">
-            <option value="10">Uso Individual - $10</option>
-            <option value="100">Uso Corporativo - $100</option>
+            <option value="35">Revisión Estándar - $35</option>
+            <option value="65">Revisión Profesional - $65</option>
+            <option value="120">Asesoría Integral Premium - $120</option>
         </select>
-        <button id="payBtn" style="width:100%">PAGAR Y ACTIVAR</button>
-    </fieldset>
+        <button id="payBtn" class="btn-sol">ACTIVAR ASESOR VIRTUAL</button>
+    </section>
 
-    <fieldset>
-        <legend>2. Checkpoint Multirrol (TSA/IATA)</legend>
+    <section id="mainApp" style="opacity: 0.5; pointer-events: none;">
+        <h3>2. Verificación Técnica (Checkpoint)</h3>
         <form id="auditForm">
-            <label>Tu Rol:</label>
-            <select name="role">
-                <option value="counter">Counter / Documentación</option>
-                <option value="vasculero">Vasculero / Pesaje</option>
-                <option value="operativo">Operativo de Rampa</option>
-                <option value="camionero">Transportista</option>
-            </select>
-            <input type="number" name="h" placeholder="Altura (cm)" required>
-            <label>¿Madera con Sello?</label>
+            <input type="number" name="h" placeholder="Altura en cm (Max 213cm TSA)" required>
+            <label>¿Pallet Certificado HT?</label>
             <select name="ispm"><option value="SI">SÍ</option><option value="NO">NO</option></select>
-            <label>¿Carga Peligrosa?</label>
-            <select name="dg"><option value="NO">NO</option><option value="SI">SÍ (HAZMAT)</option></select>
-            <label>¿Etiquetas hacia afuera?</label>
+            <label>¿Carga Peligrosa (DG)?</label>
+            <select name="dg"><option value="NO">NO</option><option value="SI">SÍ</option></select>
+            <label>¿Etiquetas Visibles?</label>
             <select name="labels"><option value="SI">SÍ</option><option value="NO">NO</option></select>
-            <button id="valBtn" type="submit" disabled class="btn-disabled" style="width:100%">AUDITAR CARGA</button>
+            <button type="submit">VALIDAR CUMPLIMIENTO</button>
         </form>
         <div id="auditResponse"></div>
-    </fieldset>
 
-    <fieldset>
-        <legend>3. Inspección Visual de Seguridad</legend>
-        <p style="font-size: 0.8em;">Tome fotos de los 4 lados para asegurar visibilidad de labels.</p>
+        <h3>3. Inspección Visual y Soluciones</h3>
+        <p>Suba hasta 3 fotos para análisis de estiba y etiquetas.</p>
         <form id="advForm">
-            <textarea name="prompt" placeholder="Describa el problema o haga una pregunta técnica..."></textarea>
-            <input type="file" name="image" accept="image/*" capture="environment">
-            <button type="submit" style="width:100%">ENVIAR A ASESOR IA</button>
+            <textarea name="prompt" placeholder="Pregunte: ¿Cómo evito que se rompan las cajas? ¿Esta etiqueta es legal?"></textarea>
+            <input type="file" name="images" accept="image/*" multiple>
+            <button type="submit" class="btn-sol">OBTENER SOLUCIONES DE RECTIFICACIÓN</button>
         </form>
-        <div id="advResponse" style="padding:10px; border-radius:5px; border: 1px solid #ccc;"></div>
-    </fieldset>
+        
+        <div id="advResponse"></div>
+        <div id="actionBtns" style="display:none; margin-top:10px;">
+            <button onclick="downloadPDF()">📄 DESCARGAR REPORTE PDF</button>
+            <button onclick="shareWA()" style="background:#25d366;">📱 COMPARTIR POR WHATSAPP</button>
+        </div>
+    </section>
 
     <script src="app.js"></script>
 </body>
