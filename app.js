@@ -1,50 +1,56 @@
-const BASE_URL = "https://smartcargo-aipa.onrender.com";
+const BASE_URL = window.location.origin;
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificación de Acceso
+    // Verificación de acceso por URL o Memoria
     const params = new URLSearchParams(window.location.search);
     if (params.get("access") === "granted" || localStorage.getItem("sc_auth") === "true") {
         localStorage.setItem("sc_auth", "true");
         document.getElementById("mainApp").style.opacity = "1";
-        document.getElementById("mainApp").style.pointer_events = "all";
+        document.getElementById("mainApp").style.pointerEvents = "all";
     }
 
-    // Auditoría Rápida
+    // Validador de Reglas Técnicas
     document.getElementById("auditForm").onsubmit = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
         const res = await fetch(`${BASE_URL}/cargas`, { method: "POST", body: fd });
         const data = await res.json();
+        
         const out = document.getElementById("auditResponse");
-        out.innerHTML = "<h4>DIAGNÓSTICO:</h4>";
+        out.innerHTML = "<h4>📋 DIAGNÓSTICO DE CUMPLIMIENTO:</h4>";
         data.forEach(item => {
-            out.innerHTML += `<div class="risk-${item.lvl}"><strong>${item.msg}</strong><br>🛠️ SOLUCIÓN: ${item.sol}</div>`;
+            out.innerHTML += `<div class="risk-${item.lvl}" style="padding:10px; margin:5px; border-radius:5px; border-left:5px solid;">
+                                <strong>${item.msg}</strong><br>🛠️ SOLUCIÓN: ${item.sol}</div>`;
         });
     };
 
-    // Asesor Virtual - Soluciones Rectificativas
+    // Asesor Virtual (Inspección Visual 3 Fotos)
     document.getElementById("advForm").onsubmit = async (e) => {
         e.preventDefault();
         const out = document.getElementById("advResponse");
-        out.innerHTML = "<h4>🔍 CONSULTANDO PROTOCOLOS TSA/IATA...</h4>";
+        out.innerHTML = "<p>🔍 ANALIZANDO BAJO ESTÁNDARES IATA/TSA...</p>";
         
         const fd = new FormData(e.target);
         const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
         const data = await res.json();
         
-        out.innerHTML = `<div id="report"><h2 style="color:#01579b;">REPORTE DE ASESORÍA TÉCNICA</h2>${data.data}</div>`;
+        out.innerHTML = `<div id="report" style="background:white; color:black; padding:20px; border:1px solid #000;">
+                            <h3>SOLUCIÓN TÉCNICA SMARTCARGO</h3>
+                            <div style="white-space: pre-wrap;">${data.data}</div>
+                         </div>`;
         document.getElementById("actionBtns").style.display = "block";
     };
 });
 
+// Función de Pago y Acceso Admin
 async function handlePayment() {
-    const awb = document.getElementsByName("awb")[0].value;
+    const awb = document.getElementsByName("awb")[0].value || "N/A";
     const amount = document.getElementById("priceSelect").value;
-    const user = prompt("ADMIN USER (Opcional):");
-    const pass = prompt("ADMIN PASS (Opcional):");
+    const user = prompt("USUARIO ADMINISTRADOR:");
+    const pass = prompt("CONTRASEÑA:");
 
     const fd = new FormData();
-    fd.append("awb", awb || "N/A");
+    fd.append("awb", awb);
     fd.append("amount", amount);
     if(user) fd.append("user", user);
     if(pass) fd.append("password", pass);
@@ -58,10 +64,10 @@ document.getElementById("payBtn").onclick = handlePayment;
 
 function downloadPDF() {
     const element = document.getElementById("report");
-    html2pdf().from(element).save("SmartCargo_Reporte.pdf");
+    html2pdf().from(element).save("Reporte_SmartCargo.pdf");
 }
 
 function shareWA() {
     const text = document.getElementById("report").innerText;
-    window.open(`https://wa.me/?text=${encodeURIComponent("⭐ SOLUCIÓN SMARTCARGO:\n\n" + text)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent("⭐ ASESORÍA SMARTCARGO:\n\n" + text)}`, '_blank');
 }
