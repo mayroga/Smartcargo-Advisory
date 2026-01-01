@@ -1,69 +1,85 @@
-const BASE_URL = window.location.origin;
-
-const translations = {
-    en: { title: "SmartCargo Advisor", t1: "1. Activation", t2: "2. Solution Center", p1: "Describe issue or upload 3 photos." },
-    es: { title: "Asesor SmartCargo", t1: "1. Activación", t2: "2. Centro de Soluciones", p1: "Describa el problema o suba 3 fotos." },
-    fr: { title: "Conseiller SmartCargo", t1: "1. Activation", t2: "2. Centre de Solutions", p1: "Décrivez le problème ou téléchargez 3 photos." },
-    pt: { title: "Consultor SmartCargo", t1: "1. Ativação", t2: "2. Centro de Soluções", p1: "Descreva o problema ou envie 3 fotos." },
-    zh: { title: "SmartCargo 顾问", t1: "1. 激活", t2: "2. 解决方案中心", p1: "描述问题或上传 3 张照片。" }
-};
+// Usar ruta relativa para evitar bloqueos de CORS en Render
+const API_PATH = ""; 
 
 function setLang(lang) {
-    localStorage.setItem("lang", lang);
-    const t = translations[lang];
-    document.getElementById("title").innerText = t.title;
-    document.getElementById("t1").innerText = t.t1;
-    document.getElementById("t2").innerText = t.t2;
-    document.getElementById("p1").innerText = t.p1;
+    localStorage.setItem("user_lang", lang);
+    const t = {
+        en: { act: "1. Service Activation", sol: "2. Solution Center" },
+        es: { act: "1. Activación de Servicio", sol: "2. Centro de Soluciones" }
+    };
+    const sel = t[lang] || t['en'];
+    document.getElementById("t_act").innerText = sel.act;
+    document.getElementById("t_sol").innerText = sel.sol;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Configurar idioma inicial
-    setLang(localStorage.getItem("lang") || "en");
+    setLang(localStorage.getItem("user_lang") || "es");
 
-    // DESBLOQUEO DEL SISTEMA
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("access") === "granted" || localStorage.getItem("sc_auth") === "true") {
-        localStorage.setItem("sc_auth", "true");
-        document.getElementById("mainApp").style.opacity = "1";
-        document.getElementById("mainApp").style.pointerEvents = "all";
-        document.getElementById("access").style.display = "none";
+    // Verificar si ya tiene acceso para desbloquear
+    if (localStorage.getItem("smartcargo_auth") === "true") {
+        unlockSystem();
     }
 
+    // BOTÓN DE ACTIVACIÓN (ADMIN O STRIPE)
+    document.getElementById("activateBtn").onclick = async () => {
+        const awb = document.getElementById("awbField").value || "N/A";
+        const price = document.getElementById("servicePrice").value;
+        
+        const user = prompt("ADMIN USER (Opcional):");
+        const pass = prompt("ADMIN PASSWORD (Opcional):");
+
+        const fd = new FormData();
+        fd.append("awb", awb);
+        fd.append("amount", price);
+        if(user) fd.append("user", user);
+        if(pass) fd.append("password", pass);
+
+        try {
+            const res = await fetch(`${API_PATH}/create-payment`, { method: "POST", body: fd });
+            const data = await res.json();
+            if(data.url) {
+                window.location.href = data.url;
+            } else {
+                alert("Error en la respuesta del servidor.");
+            }
+        } catch (err) {
+            alert("No se pudo conectar con el servidor. Revise su conexión.");
+        }
+    };
+
+    // FORMULARIO DE ASESORÍA
     document.getElementById("advForm").onsubmit = async (e) => {
         e.preventDefault();
         const out = document.getElementById("advResponse");
-        out.innerHTML = "<h4>🔍 Analyzing technical options...</h4>";
+        out.innerHTML = "<h3>🔍 Analizando múltiples soluciones...</h3>";
         
         const fd = new FormData(e.target);
-        fd.append("lang", localStorage.getItem("lang") || "en");
+        fd.append("lang", localStorage.getItem("user_lang") || "es");
 
         try {
-            const res = await fetch(`${BASE_URL}/advisory`, { method: "POST", body: fd });
+            const res = await fetch(`${API_PATH}/advisory`, { method: "POST", body: fd });
             const data = await res.json();
-            out.innerHTML = `<div id="report"><h3>REPORT</h3>${data.data}</div>`;
-            document.getElementById("actionBtns").style.display = "block";
+            out.innerHTML = `<div id="finalReport"><h3>REPORTE TÉCNICO</h3>${data.data}</div>`;
+            document.getElementById("actionBtns").style.display = "flex";
         } catch (err) {
-            out.innerHTML = "<h4>Error connecting to Advisor.</h4>";
+            out.innerHTML = "<h3>⚠️ Error al generar soluciones.</h3>";
         }
     };
+
+    // Detectar acceso desde la URL después del pago
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("access") === "granted") {
+        localStorage.setItem("smartcargo_auth", "true");
+        unlockSystem();
+    }
 });
 
-document.getElementById("payBtn").onclick = async () => {
-    const awb = document.getElementById("awbInput").value || "N/A";
-    const user = prompt("ADMIN USER (Optional):");
-    const pass = prompt("ADMIN PASS (Optional):");
-    
-    const fd = new FormData();
-    fd.append("awb", awb);
-    fd.append("amount", "35");
-    if(user) fd.append("user", user);
-    if(pass) fd.append("password", pass);
+function unlockSystem() {
+    const main = document.getElementById("mainApp");
+    main.style.opacity = "1";
+    main.style.pointerEvents = "all";
+    document.getElementById("accessSection").style.display = "none";
+}
 
-    const res = await fetch(`${BASE_URL}/create-payment`, { method: "POST", body: fd });
-    const data = await res.json();
-    if(data.url) window.location.href = data.url;
-};
-
-function downloadPDF() { html2pdf().from(document.getElementById("report")).save("SmartCargo_Report.pdf"); }
-function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById("report").innerText)}`, '_blank'); }
+function downloadPDF() { html2pdf().from(document.getElementById("finalReport")).save("Reporte_SmartCargo.pdf"); }
+function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById("finalReport").innerText)}`, '_blank'); }
